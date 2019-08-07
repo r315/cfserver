@@ -1,0 +1,5 @@
+sdkconfig.old
+*.d
+*.o
+/.vscode/
+/build/
