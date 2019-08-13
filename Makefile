@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := simple
+PROJECT_NAME := cfserver
 
 include $(IDF_PATH)/make/project.mk
 
