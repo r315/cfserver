@@ -1,5 +1,6 @@
 sdkconfig.old
 *.d
 *.o
-/.vscode/
+.vscode/
 /build/
+node_modules/

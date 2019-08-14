@@ -1,0 +1,28 @@
+{
+  "name": "sissi",
+  "version": "1.0.0",
+  "description": "Remote cat feeder app for automated feeder",
+  "main": "catfeeder.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/r315/pi1718si.git"
+  },
+  "keywords": [
+    "esp8266",
+    "ESP_RTOS_SDK",
+    "wifi",
+    "stepper"
+  ],
+  "author": "Hugo Reis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/r315/pi1718si/issues"
+  },
+  "homepage": "https://github.com/r315/pi1718si#readme",
+  "dependencies": {
+    "@linclark/pkg": "^1.0.2"
+  }
+}
