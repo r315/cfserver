@@ -1,2 +1,126 @@
+<!doctype html>
+<html lang="en">
 
-Hello from html
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>sissi the cat feeder</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <br>
+    <main role="main" class="container">
+
+        <div class="modal-footer">
+            <button class="btn btn-primary" onclick="feedSmalDose()">Feed</button>
+            <button class="btn btn-primary" data-toggle="modal" data-target=".new-list-modal">New schedule</button>
+        </div>
+        <section class="col" style="height:300px; border:1px solid #ccc; overflow:auto;">
+            <table class="table table-dark table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width:30px">#</th>
+                        <th scope="col">Schedules</th>
+                    </tr>
+                </thead>
+                <tbody id="tbl-schedules"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- Small modal -->
+    <div id="new-list-modal">
+        <div class="modal fade new-list-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <p>Enter your comment</p>
+                        <textarea class="form-control" type="text" rows="3" id="comment-body"></textarea>
+                        <div class="modal-footer">
+                            <button class="btn btn-default" data-toggle="modal" data-target=".new-list-modal"
+                                onclick="scheduleFood()">Post</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /Small modal -->
+
+
+    <script>
+
+        /**
+         *  <tr>
+         *  <th scope="row">{{index}}</th>
+         *  <td>
+         *      <a href="{{cast_link}}">{{cast_name}}</a>
+         *  </td>
+         *  </tr>   
+         * */
+        function insertSchedule(dateTime) {
+            let tab = document.getElementById("tbl-schedules")
+            let a = document.createElement("a")
+            a.href = ""
+            a.innerText = dateTime
+            let td = document.createElement("td")
+            td.appendChild(a)
+            let th = document.createElement("th")
+            th.scope = "row"
+            th.innerText = tab.childElementCount + 1
+            let tr = document.createElement("tr")
+            tr.appendChild(th)
+            tr.appendChild(td)
+            tab.appendChild(tr)
+        }
+
+        function scheduleFood() {
+            insertSchedule("20:00")
+        }
+
+        function feedSmalDose(){
+            feed(200)
+        }
+
+        function feed(qnt){
+            let xhr = new XMLHttpRequest()
+            let url = window.location.pathname
+            xhr.open("POST", url, true)
+            xhr.setRequestHeader("Content-Type", "application/json")
+            xhr.onreadystatechange = ()=> {
+                if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    console.log("feed done")         
+                }
+            }            
+            xhr.send(JSON.stringify({"qnt" :qnt}))
+        }
+    </script>
+</body>
+
+</html>

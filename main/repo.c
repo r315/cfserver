@@ -1,32 +1,39 @@
-#include <esp_log.h>
-#include <esp_system.h>
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/unistd.h>
 #include <sys/stat.h>
+#include <esp_log.h>
+#include <esp_system.h>
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_spiffs.h"
+
 
 /**
  * https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-guides/partition-tables.html
  * https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/storage/spiffs.html
  * $ make partition_table
+ * $ make partition_table-flash
+ * $ make partition_data
+ * $ make partition_data-flash
  */
+
+int repoReadFile(char *filename, char **buf);
 
 static const char *TAG = "REPO";
 
+static esp_vfs_spiffs_conf_t conf = {
+    .base_path = "/spiffs",
+    .partition_label = NULL,
+    .max_files = 5,
+    .format_if_mount_failed = true
+};
+
 esp_err_t repoInit(void)
 {
-    ESP_LOGI(TAG, "Initializing SPIFFS");
-    
-    esp_vfs_spiffs_conf_t conf = {
-      .base_path = "/spiffs",
-      .partition_label = NULL,
-      .max_files = 5,
-      .format_if_mount_failed = true
-    };
+    ESP_LOGI(TAG, "Initializing SPIFFS");   
     
     // Use settings defined above to initialize and mount SPIFFS filesystem.
     // Note: esp_vfs_spiffs_register is an all-in-one convenience function.
@@ -80,28 +87,66 @@ esp_err_t repoInit(void)
     //esp_vfs_spiffs_unregister(NULL);
     //ESP_LOGI(TAG, "SPIFFS unmounted");
 #endif
+
+    char *buf;
+    repoReadFile((char*)"/spiffs/index.html", &buf);
     return ESP_OK;
 }
 
 
 
-esp_err_t repoReadFile(char *file, char *dst, uint32_t len){
+int repoReadFile(char *filename, char **buf){
  // Open renamed file for reading
-    ESP_LOGI(TAG, "Reading file \"%s\"", file);
+    ESP_LOGI(TAG, "Reading file \"%s\"", filename);
     
-    FILE *f = fopen(file, "r");
-    if (f == NULL) {
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for reading");
+        return 0;
+    }
+    
+    //fgets(dst, len, f);
+    fseek(fp, 0, SEEK_END);
+    int size = ftell(fp);
+    ESP_LOGI(TAG, "File size %u", size);
+    fseek(fp, 0, SEEK_SET);
+
+    *buf = (char *)malloc(size);
+    if (*buf == NULL) {
+        ESP_LOGE("SPIFFS", "Failed to allocate memory");
+        return ESP_FAIL;
+    }
+
+    int br = fread(*buf, 1, size, fp);
+
+    fclose(fp);
+
+    if(br == 0)
+    {
+        ESP_LOGW(TAG, "No bytes read %u", ferror(fp));
+        free(*buf);
+        return 0;
+    }
+
+    ESP_LOGI(TAG, "%u bytes read", br);
+    //ESP_LOGI(TAG, "Read from file: '%s'", file_buf);
+    return size;
+}
+
+
+/*
+
+esp_err_t repoFileResponse(httpd_req_t *req, char *filename){
+    ESP_LOGI(TAG, "Reading file \"%s\"", filename);
+    
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
         ESP_LOGE(TAG, "Failed to open file for reading");
         return ESP_ERR_NOT_FOUND;
     }
-    
-    fgets(dst, len, f);
-    fclose(f);
-    // strip newline
-    char* pos = strchr(dst, '\n');
-    if (pos) {
-        *pos = '\0';
-    }
-    //ESP_LOGI(TAG, "Read from file: '%s'", line);
+
+    //https://github.com/espressif/esp-idf/issues/3363
     return ESP_OK;
 }
+
+*/

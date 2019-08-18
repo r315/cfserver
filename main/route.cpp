@@ -5,7 +5,7 @@
 
 static const char *TAG="ROUTE";
 
-esp_err_t repoReadFile(char *file, char *dst, uint32_t len);
+extern "C" int repoReadFile(char *filename, char **buf);
 
 /**
  * handler for GET /
@@ -20,10 +20,15 @@ esp_err_t home_get_handler(httpd_req_t *req){
     //const char* resp_str = "Home, testing testting";
     //httpd_resp_send(req, resp_str, strlen(resp_str));
 
-    char resp_str[64];
-    repoReadFile((char*)"/spiffs/foo.txt", resp_str, sizeof(resp_str));
-    httpd_resp_send(req, resp_str, strlen(resp_str));
+    char *buf;
+    int size = repoReadFile((char*)"/spiffs/index.html", &buf);
 
+    if(size > 0){
+        httpd_resp_send(req, buf, size);
+        free(buf);
+    }else{
+        httpd_resp_send(req, "Fail", 5);
+    }    
     return ESP_OK;
 }
 
@@ -33,6 +38,37 @@ uri_node_t home_uri = {
         .uri = "/",
         .method = HTTP_GET,
         .handler = home_get_handler,
+        .user_ctx = NULL
+    }
+};
+
+
+/**
+ * handler for POST /
+ */
+esp_err_t home_post_handler(httpd_req_t *req){
+    
+    ESP_LOGI(TAG, "Request URI: %s", req->uri);
+
+
+    /* Send response with custom headers and body set as the
+     * string passed in user context*/
+    //const char* resp_str = "Home, testing testting";
+    //httpd_resp_send(req, resp_str, strlen(resp_str));
+
+    char *buf;
+    int size = repoReadFile((char*)"/spiffs/foo.txt", &buf);
+    httpd_resp_send(req, buf, size);
+
+    return ESP_OK;
+}
+
+uri_node_t post_uri = {
+    .node = {NULL},
+    .uri = {
+        .uri = "/",
+        .method = HTTP_POST,
+        .handler = home_post_handler,
         .user_ctx = NULL
     }
 };

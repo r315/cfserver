@@ -33,15 +33,9 @@ static Cfserver server;
 extern uri_node_t hello_uri;
 extern uri_node_t ctrl_uri;
 extern uri_node_t home_uri;
+extern uri_node_t post_uri;
 
-
-//CRUD operations
-esp_err_t ctrl_put_handler(httpd_req_t *req);
-esp_err_t echo_post_handler(httpd_req_t *req);
-esp_err_t hello_get_handler(httpd_req_t *req);
-esp_err_t home_get_handler(httpd_req_t *req);
-
-esp_err_t repoInit(void);
+extern "C" esp_err_t repoInit(void);
 
 extern "C" void app_main()
 {
