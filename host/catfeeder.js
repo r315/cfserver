@@ -7,7 +7,9 @@ const TAG = 'app'
 const log = (msg, async) => {if(async != undefined)commandOut(`\n${TAG}: ${msg}\n${prompt}`); else commandOut(msg);}
 const commandOut = (msg) => process.stdout.write(msg)
 
-const app = require('express')()
+const bodyParser = require('body-parser')
+const express = require('express')
+const app = express()
 const path = require('path');
 
 /**
@@ -41,7 +43,13 @@ function commandInputHandler(buffer){
  */
 
 //app.get('/',(req, res) => {res.send('hello from server')})
+app.use(bodyParser());
 app.get('/',(req, res) => {res.sendFile(path.join(__dirname+'/../public/index.html'));})
+app.post('/',(req, res) => {
+    log(`Dispense: ${req.body.qnt}`, true);
+    //res.contentType = "text/plain"
+    res.header("Content-Type", "text/plain");
+    res.end("ok")})
 process.openStdin().addListener('data', commandInputHandler)
 commandOut(prompt)
 app.listen(port, () => log(`Example app listening on port ${port}!`, true));

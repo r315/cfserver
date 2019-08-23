@@ -11,6 +11,8 @@
 #define EXAMPLE_WIFI_SSID CONFIG_WIFI_SSID
 #define EXAMPLE_WIFI_PASS CONFIG_WIFI_PASSWORD
 
+#define FEED_200G   1000
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,6 +39,8 @@ public:
     void remove_uri(uri_node_ *uri);
     void unregister_uri(uri_node_t *uri);
     void register_uri(uri_node_t *uri_node);
+    void set_ssid(uint8_t *ssid);
+    void set_pass(uint8_t *pass);
 };
 
 #ifdef __cplusplus

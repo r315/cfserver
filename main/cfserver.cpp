@@ -1,6 +1,7 @@
 
-#include <esp_wifi.h>
 
+#include <stdint.h>
+#include <esp_wifi.h>
 #include <esp_event_loop.h>
 #include <esp_log.h>
 #include <esp_system.h>
@@ -52,8 +53,8 @@ void Cfserver::init(void)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-    memcpy(&wifi_config.sta.ssid, EXAMPLE_WIFI_SSID, sizeof(EXAMPLE_WIFI_SSID));
-    memcpy(&wifi_config.sta.password, EXAMPLE_WIFI_PASS, sizeof(EXAMPLE_WIFI_PASS));
+    //memcpy(&wifi_config.sta.ssid, EXAMPLE_WIFI_SSID, sizeof(EXAMPLE_WIFI_SSID));
+    //memcpy(&wifi_config.sta.password, EXAMPLE_WIFI_PASS, sizeof(EXAMPLE_WIFI_PASS));
     ESP_LOGI(tag, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
@@ -113,6 +114,21 @@ void Cfserver::unregister_uri(uri_node_t *uri_node){
 void Cfserver::register_uri(uri_node_t *uri_node){
     add_uri(uri_node);
     httpd_register_uri_handler(handle, &uri_node->uri);
+}
+
+static void chrcpy(uint8_t *dst, uint8_t *src){
+    while(*src != '\n' && *src != '\0'){
+        *(dst++) = *(src++);
+    }
+    *dst = '\0';
+}
+
+void Cfserver::set_ssid(uint8_t *ssid){
+    chrcpy(wifi_config.sta.ssid, ssid);
+}
+
+void Cfserver::set_pass(uint8_t *pass){
+    chrcpy(wifi_config.sta.password, pass);
 }
 
 /*

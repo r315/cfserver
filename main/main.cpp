@@ -13,40 +13,33 @@
 #include <esp_system.h>
 #include <nvs_flash.h>
 #include <sys/param.h>
-
 #include "cfserver.h"
+#include "steper.h"
+#include "repo.h"
 
-
-/* A simple example that demonstrates how to create GET and POST
- * handlers for the web server.
- * The examples use simple WiFi configuration that you can set via
- * 'make menuconfig'.
- * If you'd rather not, just change the below entries to strings
- * with the config you want -
- * ie. #define EXAMPLE_WIFI_SSID "mywifissid"
-*/
 
 static const char *TAG="APP";
-
 static Cfserver server;
 
-extern uri_node_t hello_uri;
-extern uri_node_t ctrl_uri;
-extern uri_node_t home_uri;
-extern uri_node_t post_uri;
-
-extern "C" esp_err_t repoInit(void);
+extern uri_node_t home_get;
+extern uri_node_t feed_post;
 
 extern "C" void app_main()
-{
-    
+{    
 
     ESP_ERROR_CHECK(nvs_flash_init());
+    REPO_Init();
 
     server.tag = TAG;
     server.init();
-    server.add_uri(&ctrl_uri);
-    server.add_uri(&hello_uri);
-    server.add_uri(&home_uri);
-    repoInit();    
+    //server.add_uri(&ctrl_uri);
+    //server.add_uri(&hello_uri);
+    server.add_uri(&home_get);
+    server.add_uri(&feed_post);
+    
+    STEP_Init();
+
+    while (1) {
+        vTaskDelay(1000 / portTICK_RATE_MS);
+    }
 }

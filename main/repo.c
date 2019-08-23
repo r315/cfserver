@@ -9,6 +9,13 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "esp_spiffs.h"
+#include "repo.h"
+
+
+
+uint32_t REPO_HomePage(char **buf){
+    return REPO_ReadFile((char*)HOME_PAGE_PATH, buf);    
+}
 
 
 /**
@@ -16,11 +23,23 @@
  * https://docs.espressif.com/projects/esp-idf/en/latest/api-reference/storage/spiffs.html
  * $ make partition_table
  * $ make partition_table-flash
- * $ make partition_data
  * $ make partition_data-flash
+ * 
+ * 
+ * mkspiffs ver. 0.2.3-6-g983970e
+ * Build configuration name: generic
+ * SPIFFS ver. 0.3.7-5-gf5e26c4
+ * Extra build flags: (none)
+ * SPIFFS configuration:
+ * SPIFFS_OBJ_NAME_LEN: 32
+ * SPIFFS_OBJ_META_LEN: 0
+ * SPIFFS_USE_MAGIC: 1
+ * SPIFFS_USE_MAGIC_LENGTH: 1
+ * SPIFFS_ALIGNED_OBJECT_INDEX_TABLES: 4
+ * 
  */
 
-int repoReadFile(char *filename, char **buf);
+
 
 static const char *TAG = "REPO";
 
@@ -31,7 +50,7 @@ static esp_vfs_spiffs_conf_t conf = {
     .format_if_mount_failed = true
 };
 
-esp_err_t repoInit(void)
+esp_err_t REPO_Init(void)
 {
     ESP_LOGI(TAG, "Initializing SPIFFS");   
     
@@ -88,14 +107,14 @@ esp_err_t repoInit(void)
     //ESP_LOGI(TAG, "SPIFFS unmounted");
 #endif
 
-    char *buf;
-    repoReadFile((char*)"/spiffs/index.html", &buf);
+    //char *buf;
+    //repoReadFile((char*)"/spiffs/index.html", &buf);
     return ESP_OK;
 }
 
 
 
-int repoReadFile(char *filename, char **buf){
+uint32_t REPO_ReadFile(char *filename, char **buf){
  // Open renamed file for reading
     ESP_LOGI(TAG, "Reading file \"%s\"", filename);
     

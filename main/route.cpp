@@ -2,10 +2,10 @@
 #include <esp_log.h>
 #include <esp_system.h>
 #include "cfserver.h"
+#include "steper.h"
+#include "repo.h"
 
 static const char *TAG="ROUTE";
-
-extern "C" int repoReadFile(char *filename, char **buf);
 
 /**
  * handler for GET /
@@ -14,14 +14,13 @@ esp_err_t home_get_handler(httpd_req_t *req){
     
     ESP_LOGI(TAG, "Request URI: %s", req->uri);
 
-
     /* Send response with custom headers and body set as the
      * string passed in user context*/
     //const char* resp_str = "Home, testing testting";
     //httpd_resp_send(req, resp_str, strlen(resp_str));
 
     char *buf;
-    int size = repoReadFile((char*)"/spiffs/index.html", &buf);
+    uint32_t size = REPO_HomePage(&buf);
 
     if(size > 0){
         httpd_resp_send(req, buf, size);
@@ -32,7 +31,7 @@ esp_err_t home_get_handler(httpd_req_t *req){
     return ESP_OK;
 }
 
-uri_node_t home_uri = {
+uri_node_t home_get = {
     .node = {NULL},
     .uri = {
         .uri = "/",
@@ -46,33 +45,39 @@ uri_node_t home_uri = {
 /**
  * handler for POST /
  */
-esp_err_t home_post_handler(httpd_req_t *req){
+esp_err_t feed_post_handler(httpd_req_t *req){
+    const char buf[] = "ok";
+
+    ESP_LOGI(TAG, "Request POST for URI \"%s\"", req->uri);
+
+    int len = req->content_len;
+
+    if(len > 10){
+        const char err[] = "Invalid len";
+        ESP_LOGE(TAG, "%s %u", err, len);
+        httpd_resp_set_status(req, "500"); // TODO: Confirm error code        
+        httpd_resp_send(req, err, sizeof(err));
+        return ESP_ERR_NOT_FOUND;
+    }
+
+    STEP_MoveSteps(FEED_200G);
     
-    ESP_LOGI(TAG, "Request URI: %s", req->uri);
-
-
-    /* Send response with custom headers and body set as the
-     * string passed in user context*/
-    //const char* resp_str = "Home, testing testting";
-    //httpd_resp_send(req, resp_str, strlen(resp_str));
-
-    char *buf;
-    int size = repoReadFile((char*)"/spiffs/foo.txt", &buf);
-    httpd_resp_send(req, buf, size);
+    httpd_resp_send(req, buf, sizeof(buf));
 
     return ESP_OK;
 }
 
-uri_node_t post_uri = {
+uri_node_t feed_post = {
     .node = {NULL},
     .uri = {
-        .uri = "/",
+        .uri = "/feed",
         .method = HTTP_POST,
-        .handler = home_post_handler,
+        .handler = feed_post_handler,
         .user_ctx = NULL
     }
 };
 
+#if 0
 /**
  * Handler for GET /ctrl
  * 
@@ -247,3 +252,5 @@ uri_node_t hello_uri = {
         .user_ctx = NULL
     }
 };
+
+#endif

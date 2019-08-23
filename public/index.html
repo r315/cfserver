@@ -63,7 +63,7 @@
                         <p>Enter your comment</p>
                         <textarea class="form-control" type="text" rows="3" id="comment-body"></textarea>
                         <div class="modal-footer">
-                            <button class="btn btn-default" data-toggle="modal" data-target=".new-list-modal"
+                            <button class="btn btn-primary" data-toggle="modal" data-target=".new-list-modal"
                                 onclick="scheduleFood()">Post</button>
                         </div>
                     </div>
@@ -72,7 +72,6 @@
         </div>
     </div>
     <!-- /Small modal -->
-
 
     <script>
 
@@ -110,8 +109,8 @@
 
         function feed(qnt){
             let xhr = new XMLHttpRequest()
-            let url = window.location.pathname
-            xhr.open("POST", url, true)
+            //let url = window.location.pathname
+            xhr.open("POST", "/feed", true)
             xhr.setRequestHeader("Content-Type", "application/json")
             xhr.onreadystatechange = ()=> {
                 if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
