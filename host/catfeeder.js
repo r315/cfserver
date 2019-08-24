@@ -44,7 +44,11 @@ function commandInputHandler(buffer){
 
 //app.get('/',(req, res) => {res.send('hello from server')})
 app.use(bodyParser());
-app.get('/',(req, res) => {res.sendFile(path.join(__dirname+'/../public/index.html'));})
+app.get('/',(req, res) => {
+    //res.setHeader("content-encoding","gzip")
+    res.sendFile(path.join(__dirname+'/../public/index.html'));
+})
+
 app.post('/',(req, res) => {
     log(`Dispense: ${req.body.qnt}`, true);
     //res.contentType = "text/plain"

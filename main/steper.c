@@ -20,7 +20,7 @@ static void stepperHandler(void *queue)
 
     for (;;) {
         if (xQueueReceive(stepper_evt_queue, &steps, portMAX_DELAY)) {
-            ESP_LOGI(TAG, "Moving [%d] steps\n", steps);
+            ESP_LOGI(TAG, "Moving [%d] steps", steps);
         }
     }
 }

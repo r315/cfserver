@@ -46,7 +46,10 @@
                 <thead>
                     <tr>
                         <th scope="col" style="width:30px">#</th>
-                        <th scope="col">Schedules</th>
+                        <th scope="col">Schedule</th>
+                        <th scope="col">Daily</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col" style="width:40px">Active</th>
                     </tr>
                 </thead>
                 <tbody id="tbl-schedules"></tbody>
@@ -60,11 +63,24 @@
             <div class="modal-dialog modal-sm" role="document">
                 <div class="modal-content">
                     <div class="modal-body">
-                        <p>Enter your comment</p>
-                        <textarea class="form-control" type="text" rows="3" id="comment-body"></textarea>
+                        <p>Enter schedule data:</p>
+                        <div class="input-group input-group-sm mb3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Quantity [g]</span>
+                            </div>
+                            <input type="text" class="form-control" id="sch-qnt">
+                        </div>
+                        <br>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">
+                                        <input type="checkbox" id="sch-daily"> Daily
+                                </div>
+                            </div>
+                        </div>
                         <div class="modal-footer">
                             <button class="btn btn-primary" data-toggle="modal" data-target=".new-list-modal"
-                                onclick="scheduleFood()">Post</button>
+                                onclick="scheduleFood()">Add</button>
                         </div>
                     </div>
                 </div>
@@ -75,49 +91,80 @@
 
     <script>
 
+        function insertTextCell(row, text, href) {
+            let cell = row.insertCell(-1)
+            if (href === undefined)
+                cell.innerText = text
+            else {
+                let a = document.createElement("a")
+                a.href = href
+                a.innerText = text
+                cell.appendChild(a)
+            }
+        }
+
+        function insertCheckCell(row, checked) {
+            let cell = row.insertCell(-1)
+            let input = document.createElement("input")
+            input.type = "checkbox"
+            if (checked == true) input.checked = "checked"
+            cell.align = "center"
+            cell.appendChild(input)
+        }
+
         /**
          *  <tr>
-         *  <th scope="row">{{index}}</th>
-         *  <td>
-         *      <a href="{{cast_link}}">{{cast_name}}</a>
-         *  </td>
+         *      <th scope="row">{{index}}</th>
+         *      <td>
+         *          <a href="{{}}">{{schedule}}</a>
+         *      </td>
+         * 
+         *      <td> ...
+         *  
          *  </tr>   
          * */
-        function insertSchedule(dateTime) {
+        function insertSchedule(sch) {
             let tab = document.getElementById("tbl-schedules")
-            let a = document.createElement("a")
-            a.href = ""
-            a.innerText = dateTime
-            let td = document.createElement("td")
-            td.appendChild(a)
-            let th = document.createElement("th")
-            th.scope = "row"
-            th.innerText = tab.childElementCount + 1
-            let tr = document.createElement("tr")
-            tr.appendChild(th)
-            tr.appendChild(td)
-            tab.appendChild(tr)
+            let count = tab.childElementCount + 1
+            let row = tab.insertRow(-1)
+            insertTextCell(row, count, "#")
+            insertTextCell(row, sch.dateTime)
+            insertTextCell(row, sch.daily)
+            insertTextCell(row, sch.qnt)
+            insertCheckCell(row, sch.active)
         }
 
         function scheduleFood() {
-            insertSchedule("20:00")
+            let sch = {                
+                "active": true                
+            }            
+            sch.daily = document.getElementById("sch-daily").checked
+            sch.qnt = document.getElementById("sch-qnt").value
+            //sch.dateTime = 
+            insertSchedule(sch)
         }
 
-        function feedSmalDose(){
-            feed(200)
+        function feedSmalDose() {
+            let sch = {
+                "daily": true,
+                "qnt": 200,
+                "active": true,
+                "sch": "now"
+            }
+            feed(sch)
         }
 
-        function feed(qnt){
+        function feed(sch) {
             let xhr = new XMLHttpRequest()
             //let url = window.location.pathname
             xhr.open("POST", "/feed", true)
             xhr.setRequestHeader("Content-Type", "application/json")
-            xhr.onreadystatechange = ()=> {
-                if(xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                    console.log("feed done")         
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    console.log("feed done")
                 }
-            }            
-            xhr.send(JSON.stringify({"qnt":qnt}))
+            }
+            xhr.send(JSON.stringify(sch))
         }
     </script>
 </body>

@@ -54,8 +54,4 @@ extern "C" void app_main()
     server.add_uri(&feed_post);
     
     STEP_Init();
-
-    while (1) {
-        vTaskDelay(1000 / portTICK_RATE_MS);
-    }
 }

@@ -6,7 +6,7 @@
 #include "repo.h"
 #include "json.h"
 
-#define RECV_BUF_LEN 64
+#define TMP_BUF_LEN 64
 
 static const char *TAG = "ROUTE";
 
@@ -50,18 +50,18 @@ uri_node_t home_get = {
  * handler for POST /
  */
 esp_err_t feed_post_handler(httpd_req_t *req){
-    char *buf, tmp[64];
+    char *buf, tmp[TMP_BUF_LEN];
     Json json;
     int ret = ESP_FAIL, len = req->content_len;
-
 
     ESP_LOGI(TAG, "Request POST for URI \"%s\"", req->uri);
 
     buf = (char*)malloc(len + 1); // Extra string terminator
     memset(buf, '\0', len + 1);
+    memset(tmp,'\0', TMP_BUF_LEN);
 
     if(buf == NULL){
-        httpd_resp_set_status(req, "506");
+        httpd_resp_set_status(req, "507");
         ESP_LOGE(TAG, "Failed to allocate memory");
         goto err0;
     }    
@@ -73,12 +73,23 @@ esp_err_t feed_post_handler(httpd_req_t *req){
         goto err1;
     }
     
-    ESP_ERROR_CHECK(json.init(buf)); 
+    ret = json.init(buf);
 
-    if(json.string("qnt", (uint8_t*)tmp) > 0){    
-        ESP_LOGI(TAG, "qnt : %s", tmp);
-        STEP_MoveSteps(FEED_200G);
-        ret = ESP_OK;
+    if( ret == ESP_OK){
+        if(json.string("qnt", (uint8_t*)tmp) > 0){    
+            int32_t qnt = atoi(tmp);
+            if(qnt > 0){
+                ESP_LOGI(TAG, "Dispensing %dg", qnt);
+                STEP_MoveSteps(qnt);
+                sprintf(tmp, "ok");
+            }else{
+                ret = ESP_FAIL;
+                sprintf(tmp, "Invalid quantity '%d'",qnt);
+                httpd_resp_set_status(req, "400");
+            }
+        }
+    }else{
+        esp_err_to_name(ret); 
     }
 
 err1:
