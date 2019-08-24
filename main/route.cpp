@@ -4,8 +4,12 @@
 #include "cfserver.h"
 #include "steper.h"
 #include "repo.h"
+#include "json.h"
 
-static const char *TAG="ROUTE";
+#define RECV_BUF_LEN 64
+
+static const char *TAG = "ROUTE";
+
 
 /**
  * handler for GET /
@@ -46,25 +50,42 @@ uri_node_t home_get = {
  * handler for POST /
  */
 esp_err_t feed_post_handler(httpd_req_t *req){
-    const char buf[] = "ok";
+    char *buf, tmp[64];
+    Json json;
+    int ret = ESP_FAIL, len = req->content_len;
+
 
     ESP_LOGI(TAG, "Request POST for URI \"%s\"", req->uri);
 
-    int len = req->content_len;
+    buf = (char*)malloc(len + 1); // Extra string terminator
+    memset(buf, '\0', len + 1);
 
-    if(len > 10){
-        const char err[] = "Invalid len";
-        ESP_LOGE(TAG, "%s %u", err, len);
-        httpd_resp_set_status(req, "500"); // TODO: Confirm error code        
-        httpd_resp_send(req, err, sizeof(err));
-        return ESP_ERR_NOT_FOUND;
+    if(buf == NULL){
+        httpd_resp_set_status(req, "506");
+        ESP_LOGE(TAG, "Failed to allocate memory");
+        goto err0;
+    }    
+
+    if ((ret = httpd_req_recv(req, buf, len)) <= 0) {
+        httpd_resp_set_status(req, "500");
+        ESP_LOGE(TAG, "Failed receiving data %u", ret);
+        ret = ESP_FAIL;
+        goto err1;
+    }
+    
+    ESP_ERROR_CHECK(json.init(buf)); 
+
+    if(json.string("qnt", (uint8_t*)tmp) > 0){    
+        ESP_LOGI(TAG, "qnt : %s", tmp);
+        STEP_MoveSteps(FEED_200G);
+        ret = ESP_OK;
     }
 
-    STEP_MoveSteps(FEED_200G);
-    
-    httpd_resp_send(req, buf, sizeof(buf));
-
-    return ESP_OK;
+err1:
+    free(buf);
+err0:
+    httpd_resp_send(req, tmp, strlen(tmp));
+    return ret;
 }
 
 uri_node_t feed_post = {

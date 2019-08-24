@@ -16,6 +16,7 @@
 #include "cfserver.h"
 #include "steper.h"
 #include "repo.h"
+#include "json.h"
 
 
 static const char *TAG="APP";
@@ -26,14 +27,29 @@ extern uri_node_t feed_post;
 
 extern "C" void app_main()
 {    
+    char *ptr;
+    uint8_t tmp[64];
+    Json json;
+    
+    ESP_LOGI(TAG, "Starting Application");
 
     ESP_ERROR_CHECK(nvs_flash_init());
-    REPO_Init();
+    ESP_ERROR_CHECK(REPO_Init());
 
-    server.tag = TAG;
+    if(REPO_ReadConfig(&ptr) > 0){
+        ESP_ERROR_CHECK(json.init(ptr));
+        if(json.string("ssid", tmp) > 0){
+            server.set_ssid(tmp);
+        }
+
+        if(json.string("password", tmp) > 0){
+            server.set_pass(tmp);
+        }
+        free(ptr);
+    }
+
+    server.tag = "CFSERVER";
     server.init();
-    //server.add_uri(&ctrl_uri);
-    //server.add_uri(&hello_uri);
     server.add_uri(&home_get);
     server.add_uri(&feed_post);
     

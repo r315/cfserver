@@ -53,9 +53,7 @@ void Cfserver::init(void)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
-    //memcpy(&wifi_config.sta.ssid, EXAMPLE_WIFI_SSID, sizeof(EXAMPLE_WIFI_SSID));
-    //memcpy(&wifi_config.sta.password, EXAMPLE_WIFI_PASS, sizeof(EXAMPLE_WIFI_PASS));
-    ESP_LOGI(tag, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
+    ESP_LOGI(tag, "Connecting to \"%s\"...", wifi_config.sta.ssid);
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
@@ -116,6 +114,9 @@ void Cfserver::register_uri(uri_node_t *uri_node){
     httpd_register_uri_handler(handle, &uri_node->uri);
 }
 
+/** 
+ * string copy of unkown size
+ * */
 static void chrcpy(uint8_t *dst, uint8_t *src){
     while(*src != '\n' && *src != '\0'){
         *(dst++) = *(src++);

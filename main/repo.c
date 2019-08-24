@@ -13,6 +13,10 @@
 
 
 
+uint32_t REPO_ReadConfig(char **buf){
+    return REPO_ReadFile((char*)CFG_PATH, buf);    
+}
+
 uint32_t REPO_HomePage(char **buf){
     return REPO_ReadFile((char*)HOME_PAGE_PATH, buf);    
 }
@@ -76,79 +80,51 @@ esp_err_t REPO_Init(void)
     } else {
         ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
     }
-#if 0
-    // Use POSIX and C standard library functions to work with files.
-    // First create a file.
-    ESP_LOGI(TAG, "Opening file");
-    FILE* f = fopen("/spiffs/hello.txt", "w");
-    if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for writing");
-        return ESP_ERR_NOT_FOUND;
-    }
-    fprintf(f, "SPIFFS says: Hello World!\n");
-    fclose(f);
-    ESP_LOGI(TAG, "File written");
-
-    // Check if destination file exists before renaming
-    struct stat st;
-    if (stat("/spiffs/foo.txt", &st) == 0) {
-        // Delete it if it exists
-        unlink("/spiffs/foo.txt");
-    }
-
-    // Rename original file
-    ESP_LOGI(TAG, "Renaming file");
-    if (rename("/spiffs/hello.txt", "/spiffs/foo.txt") != 0) {
-        ESP_LOGE(TAG, "Rename failed");
-        return ESP_ERR_INVALID_ARG;
-    }
-    // All done, unmount partition and disable SPIFFS
-    //esp_vfs_spiffs_unregister(NULL);
-    //ESP_LOGI(TAG, "SPIFFS unmounted");
-#endif
-
-    //char *buf;
-    //repoReadFile((char*)"/spiffs/index.html", &buf);
     return ESP_OK;
 }
 
-
-
+/**
+ * Note This adds one extra byte to the file content for ending strings.
+ * for data files the returned sized must be used
+ * */
 uint32_t REPO_ReadFile(char *filename, char **buf){
- // Open renamed file for reading
+ 
+    char *ptr;
+
     ESP_LOGI(TAG, "Reading file \"%s\"", filename);
     
     FILE *fp = fopen(filename, "r");
+
     if (fp == NULL) {
         ESP_LOGE(TAG, "Failed to open file for reading");
         return 0;
     }
     
-    //fgets(dst, len, f);
     fseek(fp, 0, SEEK_END);
     int size = ftell(fp);
-    ESP_LOGI(TAG, "File size %u", size);
+    //ESP_LOGI(TAG, "File size %u", size);
     fseek(fp, 0, SEEK_SET);
 
-    *buf = (char *)malloc(size);
-    if (*buf == NULL) {
-        ESP_LOGE("SPIFFS", "Failed to allocate memory");
+    ptr = (char *)malloc(size + 1);
+    if (ptr == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory");
         return ESP_FAIL;
     }
 
-    int br = fread(*buf, 1, size, fp);
+    int br = fread(ptr, 1, size, fp);
+    ptr[size] = '\0';   // End file, note for data files the returned sized must be used
 
     fclose(fp);
 
     if(br == 0)
     {
         ESP_LOGW(TAG, "No bytes read %u", ferror(fp));
-        free(*buf);
+        free(ptr);
         return 0;
     }
 
     ESP_LOGI(TAG, "%u bytes read", br);
-    //ESP_LOGI(TAG, "Read from file: '%s'", file_buf);
+    *buf = ptr;
     return size;
 }
 
