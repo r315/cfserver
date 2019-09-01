@@ -49,6 +49,24 @@ app.get('/',(req, res) => {
     res.sendFile(path.join(__dirname+'/../public/index.html'));
 })
 
+app.get('/schedules',(req, res) => {
+    let sch = [
+        {
+        "qnt" : 0,
+        "repeat": 24,
+        "active" : true,
+        "dateTime": "20:00"        
+    },
+    {
+        "qnt" : 0,
+        "repeat": 24,
+        "active" : true,
+        "dateTime": "08:00"        
+    },
+]
+    res.send(JSON.stringify(sch));
+})
+
 app.post('/',(req, res) => {
     log(`Dispense: ${req.body.qnt}`, true);
     //res.contentType = "text/plain"

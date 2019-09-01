@@ -3,6 +3,12 @@
         "qnt" : 0,
         "repeat": 24,
         "active" : true,
+        "dateTime": "08:00"
+    },
+    {
+        "qnt" : 0,
+        "repeat": 24,
+        "active" : true,
         "dateTime": "20:00"
     }
 ]

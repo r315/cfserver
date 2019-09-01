@@ -12,21 +12,35 @@
 static const char *TAG = "ROUTE";
 
 esp_err_t home_get_handler(httpd_req_t *req);
+esp_err_t schedule_get_handler(httpd_req_t *req);
 esp_err_t feed_post_handler(httpd_req_t *req);
+esp_err_t schedule_post_handler(httpd_req_t *req);
 
 httpd_uri_t handlers [] = {
-    { // /
+    {
         .uri = "/",
         .method = HTTP_GET,
         .handler = home_get_handler,
         .user_ctx = NULL
     },
-    { // /feed        
+    {
         .uri = "/feed",
         .method = HTTP_POST,
         .handler = feed_post_handler,
         .user_ctx = NULL
-    },    
+    },
+    {
+        .uri = "/schedule",
+        .method = HTTP_GET,
+        .handler = schedule_get_handler,
+        .user_ctx = NULL
+    },
+    {
+        .uri = "/schedule",
+        .method = HTTP_POST,
+        .handler = schedule_post_handler,
+        .user_ctx = NULL
+    },
     NULL
 };
 
@@ -39,7 +53,7 @@ httpd_uri_t *ROUTE_GetUriList(void){
  */
 esp_err_t home_get_handler(httpd_req_t *req){
     
-    ESP_LOGI(TAG, "Request URI: %s", req->uri);
+    ESP_LOGI(TAG, "GET for URI: %s", req->uri);
 
     /* Send response with custom headers and body set as the
      * string passed in user context*/
@@ -66,7 +80,7 @@ esp_err_t feed_post_handler(httpd_req_t *req){
     Json json;
     int ret = ESP_FAIL, len = req->content_len;
 
-    ESP_LOGI(TAG, "Request POST for URI \"%s\"", req->uri);
+    ESP_LOGI(TAG, "POST for URI \"%s\"", req->uri);
 
     buf = (char*)malloc(len + 1); // Extra string terminator
     memset(buf, '\0', len + 1);
@@ -110,6 +124,35 @@ err0:
     httpd_resp_send(req, tmp, strlen(tmp));
     return ret;
 }
+
+esp_err_t schedule_get_handler(httpd_req_t *req){
+esp_err_t ret = ESP_OK;
+uint32_t size;
+char *buf;
+
+    ESP_LOGI(TAG, "GET for URI: %s", req->uri);
+
+    size = REPO_Schedules(&buf);
+
+    if(size > 0){
+        httpd_resp_send(req, buf, size);
+        free(buf);
+        return ESP_OK;
+    }
+
+    httpd_resp_set_status(req, "500");
+    httpd_resp_send(req, "Error get schedules", 19);
+    return ESP_FAIL;        
+}
+
+esp_err_t schedule_post_handler(httpd_req_t *req){
+    ESP_LOGI(TAG, "POST for URI: %s", req->uri);
+    httpd_resp_set_status(req, "505");
+    httpd_resp_send(req, "Not implemented", 19);
+    return ESP_OK;
+}
+
+
 
 #if 0
 /**

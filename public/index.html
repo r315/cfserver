@@ -1,14 +1,11 @@
 <!doctype html>
 <html class="js" lang="en">
-
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">    
     <title>sissi the cat feeder</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
-
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
         crossorigin="anonymous"></script>
@@ -18,12 +15,9 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
-
     <style>
-
     </style>
 </head>
-
 <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark">
         <div class="collapse navbar-collapse" id="navbarsExampleDefault">
@@ -36,20 +30,19 @@
     </nav>
     <br>
     <main role="main" class="container">
-
         <div class="modal-footer">
             <button type="button" class="btn btn-primary" onclick="feedSmalDose();">Feed</button>
             <button class="btn btn-primary" data-toggle="modal" data-target=".new-list-modal">New schedule</button>
         </div>
-        <section class="col" style="height:300px; border:1px solid #ccc; overflow:auto;">
-            <table class="table table-dark table-bordered">
+        <section class="col" style="solid #ccc; overflow:auto;">
+            <table class="table table-dark">
                 <thead>
                     <tr>
-                        <th scope="col" style="width:30px">#</th>
-                        <th scope="col">Schedule</th>
-                        <th scope="col">Repeat</th>
-                        <th scope="col">Quantity</th>
-                        <th scope="col" style="width:40px">Active</th>
+                        <th scope="col" style="width:auto; font-size:3vw;">#</th>
+                        <th scope="col" style="width:auto; font-size:3vw;">Schedule</th>
+                        <th scope="col" style="width:auto; font-size:3vw;">Repeat</th>
+                        <th scope="col" style="width:auto; font-size:3vw;">Quantity</th>
+                        <th scope="col" style="width:auto; font-size:3vw;">Active</th>
                     </tr>
                 </thead>
                 <tbody id="tbl-schedules"></tbody>
@@ -87,7 +80,7 @@
         </div>
     </div>
     <!-- /Small modal -->
-
+</body>
     <script>
 
         function insertTextCell(row, text, href) {
@@ -134,12 +127,11 @@
         }
 
         function scheduleFood() {
-            let sch = {                
-                "active": true,                
-            }            
+            let sch = {
+                "active": true,
+            }
             sch.repeat = document.getElementById("sch-repeat").value
-            sch.qnt = document.getElementById("sch-qnt").value            
-            //sch.dateTime = 
+            sch.qnt = document.getElementById("sch-qnt").value
             insertSchedule(sch)
         }
 
@@ -166,6 +158,21 @@
             }
             xhr.send(JSON.stringify(sch))
         }
+
+        function getSchedules() {
+            let xhr = new XMLHttpRequest()
+            xhr.open("GET", "/schedule", true)            
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    let sch = JSON.parse(xhr.responseText);
+                    sch.forEach(element => {
+                        insertSchedule(element)
+                    })
+                }
+            }
+            xhr.send()
+        }
+
+        getSchedules();
     </script>
-</body>
 </html>
