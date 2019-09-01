@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html class="js" lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -38,7 +38,7 @@
     <main role="main" class="container">
 
         <div class="modal-footer">
-            <button class="btn btn-primary" onclick="feedSmalDose()">Feed</button>
+            <button type="button" class="btn btn-primary" onclick="feedSmalDose();">Feed</button>
             <button class="btn btn-primary" data-toggle="modal" data-target=".new-list-modal">New schedule</button>
         </div>
         <section class="col" style="height:300px; border:1px solid #ccc; overflow:auto;">
@@ -47,7 +47,7 @@
                     <tr>
                         <th scope="col" style="width:30px">#</th>
                         <th scope="col">Schedule</th>
-                        <th scope="col">Daily</th>
+                        <th scope="col">Repeat</th>
                         <th scope="col">Quantity</th>
                         <th scope="col" style="width:40px">Active</th>
                     </tr>
@@ -66,21 +66,20 @@
                         <p>Enter schedule data:</p>
                         <div class="input-group input-group-sm mb3">
                             <div class="input-group-prepend">
-                                <span class="input-group-text">Quantity [g]</span>
+                                <span class="input-group-text">Quantity</span>
                             </div>
-                            <input type="text" class="form-control" id="sch-qnt">
+                            <input type="text" class="form-control" id="sch-qnt" value="200g">
                         </div>
                         <br>
-                        <div class="input-group mb-3">
+                        <div class="input-group input-group-sm mb-3">
                             <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                        <input type="checkbox" id="sch-daily"> Daily
-                                </div>
-                            </div>
+                                <span class="input-group-text">Repeat</span>
+                             </div>
+                            <input type="text" class="form-control" id="sch-repeat" value="24h">                            
                         </div>
                         <div class="modal-footer">
-                            <button class="btn btn-primary" data-toggle="modal" data-target=".new-list-modal"
-                                onclick="scheduleFood()">Add</button>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".new-list-modal"
+                                onclick="scheduleFood();">Add</button>
                         </div>
                     </div>
                 </div>
@@ -129,28 +128,29 @@
             let row = tab.insertRow(-1)
             insertTextCell(row, count, "#")
             insertTextCell(row, sch.dateTime)
-            insertTextCell(row, sch.daily)
+            insertTextCell(row, `${sch.repeat}h`)
             insertTextCell(row, sch.qnt)
             insertCheckCell(row, sch.active)
         }
 
         function scheduleFood() {
             let sch = {                
-                "active": true                
+                "active": true,                
             }            
-            sch.daily = document.getElementById("sch-daily").checked
-            sch.qnt = document.getElementById("sch-qnt").value
+            sch.repeat = document.getElementById("sch-repeat").value
+            sch.qnt = document.getElementById("sch-qnt").value            
             //sch.dateTime = 
             insertSchedule(sch)
         }
 
         function feedSmalDose() {
             let sch = {
-                "daily": true,
+                "repeat": 24,
                 "qnt": 200,
                 "active": true,
                 "sch": "now"
             }
+            //alert('feed')
             feed(sch)
         }
 
@@ -161,12 +161,11 @@
             xhr.setRequestHeader("Content-Type", "application/json")
             xhr.onreadystatechange = () => {
                 if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                    console.log("feed done")
+                    //console.log("feed done")
                 }
             }
             xhr.send(JSON.stringify(sch))
         }
     </script>
 </body>
-
 </html>

@@ -1,7 +1,7 @@
 [
     {
         "qnt" : 0,
-        "daily": true,
+        "repeat": 24,
         "active" : true,
         "dateTime": "20:00"
     }
