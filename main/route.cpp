@@ -5,11 +5,34 @@
 #include "steper.h"
 #include "repo.h"
 #include "json.h"
+#include "route.h"
 
 #define TMP_BUF_LEN 64
 
 static const char *TAG = "ROUTE";
 
+esp_err_t home_get_handler(httpd_req_t *req);
+esp_err_t feed_post_handler(httpd_req_t *req);
+
+httpd_uri_t handlers [] = {
+    { // /
+        .uri = "/",
+        .method = HTTP_GET,
+        .handler = home_get_handler,
+        .user_ctx = NULL
+    },
+    { // /feed        
+        .uri = "/feed",
+        .method = HTTP_POST,
+        .handler = feed_post_handler,
+        .user_ctx = NULL
+    },    
+    NULL
+};
+
+httpd_uri_t *ROUTE_GetUriList(void){
+    return handlers;
+}
 
 /**
  * handler for GET /
@@ -34,17 +57,6 @@ esp_err_t home_get_handler(httpd_req_t *req){
     }    
     return ESP_OK;
 }
-
-uri_node_t home_get = {
-    .node = {NULL},
-    .uri = {
-        .uri = "/",
-        .method = HTTP_GET,
-        .handler = home_get_handler,
-        .user_ctx = NULL
-    }
-};
-
 
 /**
  * handler for POST /
@@ -98,16 +110,6 @@ err0:
     httpd_resp_send(req, tmp, strlen(tmp));
     return ret;
 }
-
-uri_node_t feed_post = {
-    .node = {NULL},
-    .uri = {
-        .uri = "/feed",
-        .method = HTTP_POST,
-        .handler = feed_post_handler,
-        .user_ctx = NULL
-    }
-};
 
 #if 0
 /**

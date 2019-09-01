@@ -19,26 +19,20 @@ extern "C" {
 
 #include <sys/queue.h>
 
-typedef struct uri_node_{
-    SLIST_ENTRY(uri_node_) node;
-    httpd_uri_t uri;
-}uri_node_t;
-
 class Cfserver
 {
 private:
     httpd_handle_t handle = NULL;
     wifi_config_t wifi_config;
-    SLIST_HEAD(uri_list, uri_node_) uri_list_head;
+    httpd_uri_t *uri_list;
 public:
     const char *tag;
     void init(void);
     void stop(void);
     void start(void);
-    void add_uri(uri_node_ *uri);
-    void remove_uri(uri_node_ *uri);
-    void unregister_uri(uri_node_t *uri);
-    void register_uri(uri_node_t *uri_node);
+    void setUriList(httpd_uri_t *uri_list);
+    void unregister_uri(httpd_uri_t *uri);
+    void register_uri(httpd_uri_t *uri);
     void set_ssid(uint8_t *ssid);
     void set_pass(uint8_t *pass);
 };

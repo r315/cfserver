@@ -17,13 +17,11 @@
 #include "steper.h"
 #include "repo.h"
 #include "json.h"
+#include "route.h"
 
 
 static const char *TAG="APP";
 static Cfserver server;
-
-extern uri_node_t home_get;
-extern uri_node_t feed_post;
 
 extern "C" void app_main()
 {    
@@ -50,8 +48,7 @@ extern "C" void app_main()
 
     server.tag = "CFSERVER";
     server.init();
-    server.add_uri(&home_get);
-    server.add_uri(&feed_post);
-    
+    server.setUriList(ROUTE_GetUriList());
+   
     STEP_Init();
 }

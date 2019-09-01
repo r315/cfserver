@@ -57,8 +57,6 @@ void Cfserver::init(void)
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config));
     ESP_ERROR_CHECK(esp_wifi_start());
-    /* Note this must be called before adding items */
-    uri_list_head = SLIST_HEAD_INITIALIZER(uri_list_head);
 }
 
 void Cfserver::start(void)
@@ -72,11 +70,12 @@ void Cfserver::start(void)
     ESP_LOGI(tag, "Starting server on port: '%d'", config.server_port);
     if (httpd_start(&handle, &config) == ESP_OK) {
         // Set URI handlers
-        uri_node_t *tmp;
-        SLIST_FOREACH(tmp, &this->uri_list_head, node){
-            ESP_LOGI(tag, "Registering handler for uri \"%s\"",tmp->uri.uri);
-            httpd_register_uri_handler(handle, &tmp->uri);
-        }        
+        httpd_uri_t *tmp = this->uri_list;
+        while(tmp->uri != NULL){
+            ESP_LOGI(tag, "Registering handler for uri \"%s\"",tmp->uri);
+            httpd_register_uri_handler(handle, tmp);
+            tmp++;
+        }          
         return;
     }
 
@@ -93,25 +92,16 @@ void Cfserver::stop(void)
     handle = NULL;
 }
 
-void Cfserver::add_uri(uri_node_t *uri_node){
-    uri_node->uri.user_ctx = this;
-    SLIST_INSERT_HEAD(&uri_list_head, uri_node, node);
+void Cfserver::setUriList(httpd_uri_t *uri_list){
+    this->uri_list = uri_list;
 }
 
-void Cfserver::remove_uri(uri_node_t *uri_node){
-    SLIST_REMOVE(&uri_list_head, uri_node, uri_node_, node);
+void Cfserver::unregister_uri(httpd_uri_t *uri){
+    httpd_unregister_uri(handle, uri->uri);
 }
 
-void Cfserver::unregister_uri(uri_node_t *uri_node){
-    /* Handler can be unregistered using the uri string */
-    httpd_unregister_uri(handle, uri_node->uri.uri);
-    // TODO: fix crash if elemnt does not exists on list
-    remove_uri(uri_node);
-}
-
-void Cfserver::register_uri(uri_node_t *uri_node){
-    add_uri(uri_node);
-    httpd_register_uri_handler(handle, &uri_node->uri);
+void Cfserver::register_uri(httpd_uri_t *uri){
+    httpd_register_uri_handler(handle, uri);
 }
 
 /** 
