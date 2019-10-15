@@ -14,25 +14,23 @@
 #include <nvs_flash.h>
 #include <sys/param.h>
 #include "cfserver.h"
-#include "steper.h"
+#include "stepper.h"
 #include "repo.h"
 #include "json.h"
 #include "route.h"
 
+#include "linenoise/linenoise.h"
+#include "argtable3/argtable3.h"
+#include "esp_console.h"
 
-static const char *TAG="APP";
+
 static Cfserver server;
 
-extern "C" void app_main()
+extern"C" void server_init()
 {    
     char *ptr;
     uint8_t tmp[64];
-    Json json;
-    
-    ESP_LOGI(TAG, "Starting Application");
-
-    ESP_ERROR_CHECK(nvs_flash_init());
-    ESP_ERROR_CHECK(REPO_Init());
+    Json json;    
 
     if(REPO_ReadConfig(&ptr) > 0){
         ESP_ERROR_CHECK(json.init(ptr));
@@ -49,6 +47,4 @@ extern "C" void app_main()
     server.tag = "CFSERVER";
     server.init();
     server.setUriList(ROUTE_GetUriList());
-   
-    STEP_Init();
 }
