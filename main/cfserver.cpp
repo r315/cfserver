@@ -10,6 +10,27 @@
 
 #include "cfserver.h"
 
+
+static wifi_init_config_t cfg = {
+    &esp_event_send,
+    NULL,
+    WIFI_QOS_ENABLED,
+    WIFI_AMPDU_RX_ENABLED,
+    WIFI_AMPDU_RX_BA_WIN,
+    WIFI_AMPDU_RX_AMPDU_BUF_NUM,
+    WIFI_AMPDU_RX_AMPDU_BUF_LEN,
+    WIFI_RX_MAX_SINGLE_PKT_LEN,
+    WIFI_HW_RX_BUFFER_LEN,
+    WIFI_AMSDU_RX_ENABLED,
+    CONFIG_ESP8266_WIFI_RX_BUFFER_NUM,
+    CONFIG_ESP8266_WIFI_RX_PKT_NUM,
+    CONFIG_ESP8266_WIFI_LEFT_CONTINUOUS_RX_BUFFER_NUM,
+    CONFIG_ESP8266_WIFI_TX_PKT_NUM,
+    WIFI_NVS_ENABLED,
+     0,
+    WIFI_INIT_CONFIG_MAGIC
+};
+
 static esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     Cfserver *server = (Cfserver*)ctx;
@@ -50,7 +71,7 @@ void Cfserver::init(void)
 {
     tcpip_adapter_init();
     ESP_ERROR_CHECK(esp_event_loop_init(event_handler, this));
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    //wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     ESP_LOGI(tag, "Connecting to \"%s\"...", wifi_config.sta.ssid);
