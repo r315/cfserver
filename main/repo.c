@@ -18,9 +18,12 @@ uint32_t REPO_ReadConfig(char **buf){
 }
 
 uint32_t REPO_HomePage(char **buf){
-    return REPO_ReadFile((char*)HOME_PAGE_PATH, buf);    
+    return REPO_ReadFile((char*)HOME_PAGE_PATH, buf);
 }
 
+uint32_t REPO_Schedules(char **buf){
+    return REPO_ReadFile((char*)SCHEDULE_PATH, buf);
+}
 
 /**
  * https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-guides/partition-tables.html
