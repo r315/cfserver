@@ -35,7 +35,11 @@ public:
     void register_uri(httpd_uri_t *uri);
     void set_ssid(uint8_t *ssid);
     void set_pass(uint8_t *pass);
+    void (*onConnect)(void);
+    void (*onDisconnect)(void);
 };
+
+
 
 #ifdef __cplusplus
 }

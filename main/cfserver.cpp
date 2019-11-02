@@ -42,12 +42,15 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
         ESP_LOGI(server->tag, "SYSTEM_EVENT_STA_START");
         ESP_ERROR_CHECK(esp_wifi_connect());
         break;
-    case SYSTEM_EVENT_STA_GOT_IP:{
+    case SYSTEM_EVENT_STA_GOT_IP:
         ESP_LOGI(server->tag, "SYSTEM_EVENT_STA_GOT_IP");
         ESP_LOGI(server->tag, "Got IP: '%s'",
                 ip4addr_ntoa(&event->event_info.got_ip.ip_info.ip));
         /* Start the web server */        
-        server->start();   }     
+        server->start();
+        /* Initialyze connection dependent services */
+        if(server->onConnect != NULL)
+            server->onConnect();
         break;
     case SYSTEM_EVENT_STA_DISCONNECTED:
         ESP_LOGI(server->tag, "SYSTEM_EVENT_STA_DISCONNECTED");
@@ -60,6 +63,8 @@ static esp_err_t event_handler(void *ctx, system_event_t *event)
 
         /* Stop the web server */
         server->stop();        
+        if(server->onDisconnect != NULL)
+            server->onDisconnect();
         break;
     default:
         break;
