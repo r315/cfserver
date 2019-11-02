@@ -18,15 +18,22 @@
 #include "repo.h"
 #include "json.h"
 #include "route.h"
+#include "sntp.h"
 
-#include "linenoise/linenoise.h"
-#include "argtable3/argtable3.h"
-#include "esp_console.h"
-
-
+static const char *TAG="App";
 static Cfserver server;
 
-extern"C" void server_init()
+extern "C" void consoleProcess(void);
+
+void onWifiConnected(void){
+    SNTP_Init();
+}
+
+void onWifiDisconnect(void){
+    
+}
+
+extern "C" void server_init(void)
 {    
     char *ptr;
     uint8_t tmp[64];
@@ -47,4 +54,11 @@ extern"C" void server_init()
     server.tag = "CFSERVER";
     server.init();
     server.setUriList(ROUTE_GetUriList());
+    server.onConnect = onWifiConnected;
+    server.onDisconnect = onWifiDisconnect;
+}
+
+extern "C" void app(void){
+    ESP_LOGI(TAG, "Running Application");
+    consoleProcess();    
 }
