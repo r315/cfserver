@@ -13,26 +13,16 @@
 
 static const char *TAG = "SNTP";
 static char *SERVER_NAME = "pool.ntp.org";
-/* FreeRTOS event group to signal when we are connected & ready to make a request */
-static EventGroupHandle_t wifi_event_group;
 
-/* The event group allows multiple bits for each event,
-   but we only care about one event - are we connected
-   to the AP with an IP? */
-static const int CONNECTED_BIT = BIT0;
+static struct tm timeinfo;
+time_t now;
 
-void SNTP_Init(void){
- time_t now;
-    struct tm timeinfo;
-    char strftime_buf[64];
-
+time_t *SNTP_GetTime(void){
     time(&now);
     localtime_r(&now, &timeinfo);
-
     // Is time set? If not, tm_year will be (1970 - 1900).
     if (timeinfo.tm_year < (2016 - 1900)) {
         ESP_LOGI(TAG, "Time is not set yet. Connecting to WiFi and getting time over NTP.");
-        //xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, false, true, portMAX_DELAY);
         ESP_LOGI(TAG, "Initializing SNTP");
         sntp_setoperatingmode(SNTP_OPMODE_POLL);
         sntp_setservername(0, SERVER_NAME);
@@ -50,25 +40,29 @@ void SNTP_Init(void){
             localtime_r(&now, &timeinfo);
         }
     }
+    return &now;
+}
+
+void SNTP_PrintTime(void){
+char strftime_buf[64];
     
-     // Set timezone to China Standard Time
-    setenv("TZ", "CST-8", 1);
+    SNTP_GetTime();
+
+    if (timeinfo.tm_year < (2016 - 1900)) {
+        ESP_LOGE(TAG, "The current date/time error");
+    } else {
+        strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+        ESP_LOGI(TAG, "The current date/time in Portugal is: %s", strftime_buf);
+    }
+}
+
+void SNTP_Init(void){
+
+    SNTP_GetTime();    
+    
+     // Set timezone to Portugal
+    setenv("TZ", "UTC+0", 1);
     tzset();
 
-
-     time(&now);
-        localtime_r(&now, &timeinfo);
-
-        if (timeinfo.tm_year < (2016 - 1900)) {
-            ESP_LOGE(TAG, "The current date/time error");
-        } else {
-            strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-            ESP_LOGI(TAG, "The current date/time in Shanghai is: %s", strftime_buf);
-        }
-
-    //Get time over NTP
-
-    //Update internal structures and set RTC according
-
-
+    SNTP_PrintTime();
 }
