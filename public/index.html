@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">    
     <title>sissi the cat feeder</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
         crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
         integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
         crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+        
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.0/font/css/open-iconic-bootstrap.min.css" />
     <style>
     </style>
 </head>
@@ -66,6 +68,12 @@
                         <br>
                         <div class="input-group input-group-sm mb-3">
                             <div class="input-group-prepend">
+                                <span class="input-group-text">Time</span>
+                             </div>
+                            <input type="text" class="form-control" id="sch-time" value="00:00">                            
+                        </div>
+                        <div class="input-group input-group-sm mb-3">
+                            <div class="input-group-prepend">
                                 <span class="input-group-text">Repeat</span>
                              </div>
                             <input type="text" class="form-control" id="sch-repeat" value="24h">                            
@@ -99,9 +107,16 @@
             let cell = row.insertCell(-1)
             let input = document.createElement("input")
             input.type = "checkbox"
+            input.align = "center"
             if (checked == true) input.checked = "checked"
-            cell.align = "center"
+            //cell.align = "center"
             cell.appendChild(input)
+            // Remove icon
+            //<span class="oi oi-icon-name" title="icon name" aria-hidden="true"></span>            
+            let span = document.createElement("span")
+            span.className = "oi oi-trash"
+            span.align = "left"
+            cell.appendChild(span)
         }
 
         /**
@@ -118,10 +133,10 @@
         function insertSchedule(sch) {
             let tab = document.getElementById("tbl-schedules")
             let count = tab.childElementCount + 1
-            let row = tab.insertRow(-1)
+            let row = tab.insertRow(-1)            
             insertTextCell(row, count, "#")
-            insertTextCell(row, sch.dateTime)
-            insertTextCell(row, `${sch.repeat}h`)
+            insertTextCell(row, `${sch.dateTime.getHours()}:${sch.dateTime.getMinutes()}`)
+            insertTextCell(row, `${sch.repeat}`)
             insertTextCell(row, sch.qnt)
             insertCheckCell(row, sch.active)
         }
@@ -132,13 +147,17 @@
             }
             sch.repeat = document.getElementById("sch-repeat").value
             sch.qnt = document.getElementById("sch-qnt").value
+            let t = document.getElementById("sch-time").value.split(':')
+            sch.dateTime = new Date()
+            sch.dateTime.setHours(t[0], t[1])
+
             insertSchedule(sch)
         }
 
         function feedSmalDose() {
             let sch = {
                 "repeat": 24,
-                "qnt": 200,
+                "qnt": 500,
                 "active": true,
                 "sch": "now"
             }
@@ -166,11 +185,23 @@
                 if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
                     let sch = JSON.parse(xhr.responseText);
                     sch.forEach(element => {
+                        element.dateTime = toDateTime(sch.time_t)
                         insertSchedule(element)
                     })
                 }
             }
             xhr.send()
+        }
+
+        function postSchedule(sch){
+            // convert datetime to seconds
+            // Send data to server
+        }
+
+        function toDateTime(secs) {
+            let t = new Date(1970, 0, 1); // Epoch
+            t.setSeconds(secs);
+            return t;
         }
 
         getSchedules();

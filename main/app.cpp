@@ -13,6 +13,11 @@
 #include <esp_system.h>
 #include <nvs_flash.h>
 #include <sys/param.h>
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+
 #include "cfserver.h"
 #include "stepper.h"
 #include "repo.h"
@@ -23,7 +28,16 @@
 static const char *TAG="App";
 static Cfserver server;
 
-extern "C" void consoleProcess(void);
+typedef struct _schedule_t{
+    uint16_t qnt;
+    uint64_t time;
+    uint8_t repeat;
+}schedule_t;
+
+#define MAX_SCHEDULES 5
+
+QueueHandle_t schedulers;
+
 
 void onWifiConnected(void){
     SNTP_Init();
@@ -58,7 +72,55 @@ extern "C" void server_init(void)
     server.onDisconnect = onWifiDisconnect;
 }
 
+
+static void loadSchedules(void){
+char *ptr;
+uint8_t str[20];
+Json json;
+
+    if(schedulers == NULL){
+        schedulers = xQueueCreate(MAX_SCHEDULES, sizeof(schedule_t));
+    }
+
+    if(schedulers == NULL){
+        ESP_LOGE(TAG, "Unable to create schedulers queue");
+        return;
+    }
+
+    if(REPO_GetSchedules(&ptr) > 0){
+        ESP_ERROR_CHECK(json.init(ptr));
+        
+        while(json.nextToken(JSMN_OBJECT)){
+            if(json.string("qnt", str) > 0){
+                printf("qnt: %s\n", str);
+            }
+
+            if(json.string("repeat", str) > 0){
+                printf("repeat: %s\n", str);
+            }
+            
+            if(json.string("active", str) > 0){
+                printf("active: %s\n", str);
+            }
+
+            if(json.string("time_t", str) > 0){
+                printf("time_t: %s\n", str);
+            }
+
+        }
+        free(ptr);
+    }
+}
+
 extern "C" void app(void){
+char *ptr;
+
     ESP_LOGI(TAG, "Running Application");
-    consoleProcess();    
+
+    schedulers = NULL;
+    loadSchedules();
+
+    while(1){
+        vTaskDelay(1000);
+    }
 }
