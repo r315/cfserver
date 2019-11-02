@@ -105,7 +105,7 @@ uint32_t steps = atoi(argv[1]);
 void register_stepper(void){
     const esp_console_cmd_t step_pulse = {
         .command = "step_pulse",
-        .help = "Set step pulse width in ms",
+        .help = "Set step pulse width in us (>1000)",
         .hint = NULL,
         .func = &set_pulse,
     };

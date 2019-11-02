@@ -126,13 +126,12 @@ err0:
 }
 
 esp_err_t schedule_get_handler(httpd_req_t *req){
-esp_err_t ret = ESP_OK;
 uint32_t size;
 char *buf;
 
     ESP_LOGI(TAG, "GET for URI: %s", req->uri);
 
-    size = REPO_Schedules(&buf);
+    size = REPO_GetSchedules(&buf);
 
     if(size > 0){
         httpd_resp_send(req, buf, size);

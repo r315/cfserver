@@ -9,15 +9,17 @@ extern "C" {
 #include <esp_system.h>
 
 
-#define REPO_ROOT "/spiffs"
-#define HOME_PAGE_PATH REPO_ROOT"/index.html"
-#define CFG_PATH REPO_ROOT"/wificfg.json"
-#define SCHEDULE_PATH REPO_ROOT"/schedule.json"
+#define REPO_ROOT       "/spiffs"
+#define HOME_PAGE_PATH  REPO_ROOT"/index.html"
+#define CFG_PATH        REPO_ROOT"/wificfg.json"
+#define SCHEDULE_PATH   REPO_ROOT"/schedule.json"
 
 uint32_t REPO_ReadFile(char *filename, char **buf);
 uint32_t REPO_HomePage(char **buf);
 uint32_t REPO_ReadConfig(char **buf);
-uint32_t REPO_Schedules(char **buf);
+uint32_t REPO_GetSchedules(char **buf);
+uint32_t REPO_PostSchedule();
+uint32_t REPO_WriteSchedule();
 
 esp_err_t REPO_Init(void);
 esp_err_t REPO_ReadWifiConfig();

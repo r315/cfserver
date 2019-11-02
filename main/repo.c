@@ -21,8 +21,16 @@ uint32_t REPO_HomePage(char **buf){
     return REPO_ReadFile((char*)HOME_PAGE_PATH, buf);
 }
 
-uint32_t REPO_Schedules(char **buf){
+uint32_t REPO_GetSchedules(char **buf){
     return REPO_ReadFile((char*)SCHEDULE_PATH, buf);
+}
+
+uint32_t REPO_PostSchedule(){
+    return 0;
+}
+
+uint32_t REPO_DeleteSchedule(){
+    return 0;
 }
 
 /**
