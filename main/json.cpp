@@ -33,21 +33,25 @@ esp_err_t Json::init(char *json){
         ESP_LOGI(TAG, "%u elements parsed", jelements);
     }
 
-    /* Assume the top-level element is an object */
-    if (jelements < 1 || jtokens[0].type != JSMN_OBJECT) {
-        ESP_LOGE(TAG, "Object expected");
+    /* Top-level element must be an object or array */
+    if (jelements < 1 || (jtokens[0].type != JSMN_OBJECT && jtokens[0].type != JSMN_ARRAY) ) {
+        ESP_LOGE(TAG, "Object or array expected");
         return ESP_ERR_NOT_FOUND;
     }
 
     jstr = (uint8_t*)json;
 
+    curjelement = 0;
+
     return ESP_OK;
 }
 
+/**
+ * */
 uint32_t Json::string(const char *name, uint8_t *dst){
     uint32_t size = 0;
 
-    for(uint32_t i = 1; i < jelements; i++){
+    for(uint32_t i = curjelement; i < jelements; i++){
         if (jsoneq(jstr, &jtokens[i], name) == 0) {
             size = jtokens[i + 1].end - jtokens[i + 1].start;
             jcpy(dst, jstr + jtokens[i + 1].start, size);
@@ -56,4 +60,18 @@ uint32_t Json::string(const char *name, uint8_t *dst){
         }
     }
     return size;
+}
+
+/**
+ * Move to next parsed token, the next strings will be parsed 
+ * from this point on
+ * */
+uint32_t Json::nextToken(jsmntype_t tok){
+	for(int i = curjelement + 1; i < jelements; i++){
+		if(jtokens[i].type == tok){
+			curjelement = i;
+			return curjelement;
+		}
+	}
+	return 0;
 }
