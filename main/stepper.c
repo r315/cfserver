@@ -101,7 +101,9 @@ uint32_t steps = atoi(argv[1]);
     return 0;
 }
 
-
+/**
+ * Stepper console command
+ * */
 void register_stepper(void){
     const esp_console_cmd_t step_pulse = {
         .command = "step_pulse",
