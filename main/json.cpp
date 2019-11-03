@@ -5,6 +5,15 @@
 
 static const char *TAG = "JSON";
 
+static const char *jsmnParseErr(jsmnerr err){
+    switch(err){
+        case JSMN_ERROR_NOMEM: return "JSMN_ERROR_NOMEM";
+        case JSMN_ERROR_INVAL: return "JSMN_ERROR_INVAL";
+        case JSMN_ERROR_PART: return "JSMN_ERROR_PART";
+    }
+    return ESP_OK;
+}
+
 static int jsoneq(uint8_t *json, jsmntok_t *tok, const char *s) {
   if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
       strncmp((char *)json + tok->start, s, tok->end - tok->start) == 0) {
@@ -26,11 +35,12 @@ esp_err_t Json::init(char *json){
 
     jelements = jsmn_parse(&jp, json, strlen(json), jtokens, sizeof(jtokens) / sizeof(jtokens[0]));
     if (jelements < 0) {
-        ESP_LOGE(TAG, "Failed to parse JSON: %d", jelements);
+        ESP_LOGE(TAG, "Failed to parse JSON: %s", jsmnParseErr((jsmnerr)jelements));
+        ESP_LOGE(TAG, "JSON String : \n%s", json);
         return ESP_ERR_NOT_FOUND;
     }
     else{
-        ESP_LOGI(TAG, "%u elements parsed", jelements);
+        ESP_LOGD(TAG, "%u elements parsed", jelements);
     }
 
     /* Top-level element must be an object or array */

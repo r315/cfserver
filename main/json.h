@@ -9,7 +9,7 @@ extern "C" {
 #include <esp_system.h>
 #include "jsmn.h"
 
-#define JSON_MAX_TOKENS 30
+#define JSON_MAX_TOKENS 100
 
 class Json{
 private:
