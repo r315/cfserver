@@ -146,9 +146,40 @@ char *buf;
 
 esp_err_t schedule_post_handler(httpd_req_t *req){
     ESP_LOGI(TAG, "POST for URI: %s", req->uri);
-    httpd_resp_set_status(req, "505");
-    httpd_resp_send(req, "Not implemented", 19);
-    return ESP_OK;
+
+    uint32_t len = req->content_len;
+    int ret = ESP_OK;
+    const char *error_message = NULL;
+
+    char *data = (char*)malloc(len);
+
+     if(data == NULL){
+        httpd_resp_set_status(req, "507");
+        error_message =  "Failed to allocate memory";
+        ret = ESP_ERR_NO_MEM;
+        goto err0;
+    } 
+
+    if ((ret = httpd_req_recv(req, data, len)) <= 0) {
+        httpd_resp_set_status(req, "500");
+        error_message = "Failed receiving data";
+        goto err1;
+    }
+
+    REPO_PostSchedule(data, len);    
+
+err1:
+    free(data);
+err0:
+
+    if(error_message == NULL){
+        httpd_resp_send(req, "ok", 2);
+        return ESP_OK;
+    }
+
+    ESP_LOGE(TAG, "%s", error_message);
+    httpd_resp_send(req, error_message, strlen(error_message));
+    return ret;
 }
 
 
