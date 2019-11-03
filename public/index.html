@@ -90,6 +90,7 @@
     <!-- /Small modal -->
 </body>
     <script>
+        let schedules = []
 
         function insertTextCell(row, text, href) {
             let cell = row.insertCell(-1)
@@ -150,8 +151,10 @@
             let t = document.getElementById("sch-time").value.split(':')
             sch.dateTime = new Date()
             sch.dateTime.setHours(t[0], t[1])
-
+            sch.time_t = sch.dateTime.getTime()
             insertSchedule(sch)
+            schedules.push(sch)
+            postSchedule();
         }
 
         function feedSmalDose() {
@@ -183,19 +186,29 @@
             xhr.open("GET", "/schedule", true)            
             xhr.onreadystatechange = () => {
                 if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                    let sch = JSON.parse(xhr.responseText);
-                    sch.forEach(element => {
-                        element.dateTime = toDateTime(sch.time_t)
-                        insertSchedule(element)
-                    })
+                    schedules = JSON.parse(xhr.responseText);
+                    if(Array.isArray(schedules)){ // we expect an array..
+                        schedules.forEach(element => {
+                            element.dateTime = toDateTime(element.time_t)
+                            insertSchedule(element)
+                        })
+                    }else{schedules = []}
                 }
             }
             xhr.send()
         }
 
-        function postSchedule(sch){
-            // convert datetime to seconds
-            // Send data to server
+        function postSchedule(){
+            let xhr = new XMLHttpRequest()
+            //let url = window.location.pathname
+            xhr.open("POST", "/schedule", true)
+            xhr.setRequestHeader("Content-Type", "application/json")
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    //console.log("feed done")
+                }
+            }
+            xhr.send(JSON.stringify(schedules))
         }
 
         function toDateTime(secs) {
