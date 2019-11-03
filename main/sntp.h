@@ -9,7 +9,7 @@ extern "C" {
 
 void SNTP_Init(void);
 void SNTP_PrintTime(void);
-time_t *SNTP_GetTime(void);
+time_t SNTP_GetTime(void);
 
 
 #ifdef __cplusplus

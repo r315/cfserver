@@ -17,7 +17,7 @@ static char *SERVER_NAME = "pool.ntp.org";
 static struct tm timeinfo;
 time_t now;
 
-time_t *SNTP_GetTime(void){
+time_t SNTP_GetTime(void){
     time(&now);
     localtime_r(&now, &timeinfo);
     // Is time set? If not, tm_year will be (1970 - 1900).
@@ -40,7 +40,7 @@ time_t *SNTP_GetTime(void){
             localtime_r(&now, &timeinfo);
         }
     }
-    return &now;
+    return now;
 }
 
 void SNTP_PrintTime(void){
