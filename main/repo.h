@@ -14,16 +14,16 @@ extern "C" {
 #define CFG_PATH        REPO_ROOT"/wificfg.json"
 #define SCHEDULE_PATH   REPO_ROOT"/schedule.json"
 
+uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len);
 uint32_t REPO_ReadFile(char *filename, char **buf);
 uint32_t REPO_HomePage(char **buf);
 uint32_t REPO_ReadConfig(char **buf);
 uint32_t REPO_GetSchedules(char **buf);
-uint32_t REPO_PostSchedule();
-uint32_t REPO_WriteSchedule();
+uint32_t REPO_PostSchedule(char *data, uint32_t len);
 
 esp_err_t REPO_Init(void);
-esp_err_t REPO_ReadWifiConfig();
-esp_err_t REPO_SaveWifiConfig();
+esp_err_t REPO_ReadWifiConfig(void);
+esp_err_t REPO_SaveWifiConfig(void);
 
 #ifdef __cplusplus
 }

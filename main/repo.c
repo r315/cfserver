@@ -25,8 +25,8 @@ uint32_t REPO_GetSchedules(char **buf){
     return REPO_ReadFile((char*)SCHEDULE_PATH, buf);
 }
 
-uint32_t REPO_PostSchedule(){
-    return 0;
+uint32_t REPO_PostSchedule(char *data, uint32_t len){
+    return REPO_WriteFile((char*)SCHEDULE_PATH, data, len);
 }
 
 uint32_t REPO_DeleteSchedule(){
@@ -140,6 +140,30 @@ uint32_t REPO_ReadFile(char *filename, char **buf){
     return size;
 }
 
+uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len){
+ 
+    ESP_LOGI(TAG, "Writing to file \"%s\"", filename);
+    
+    FILE *fp = fopen(filename, "w");
+
+    if (fp == NULL) {
+        ESP_LOGE(TAG, "Failed to open file");
+        return 0;
+    }    
+
+    int bw = fwrite(buf, 1, len, fp);
+
+    fclose(fp);
+
+    if(bw == 0)
+    {
+        ESP_LOGW(TAG, "No bytes written %u", ferror(fp));        
+        return 0;
+    }
+
+    ESP_LOGI(TAG, "%u bytes written", bw);
+    return bw;    
+}
 
 /*
 
