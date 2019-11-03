@@ -95,6 +95,7 @@ esp_err_t REPO_Init(void)
 }
 
 /**
+ * Read file content to allocated memory, must be freed after used
  * Note This adds one extra byte to the file content for ending strings.
  * for data files the returned sized must be used
  * */
