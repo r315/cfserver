@@ -77,7 +77,7 @@ esp_err_t home_get_handler(httpd_req_t *req){
  */
 esp_err_t feed_post_handler(httpd_req_t *req){
     char *buf, tmp[TMP_BUF_LEN];
-    Json json;
+
     int ret = ESP_FAIL, len = req->content_len;
 
     ESP_LOGI(TAG, "POST for URI \"%s\"", req->uri);
@@ -99,10 +99,10 @@ esp_err_t feed_post_handler(httpd_req_t *req){
         goto err1;
     }
     
-    ret = json.init(buf);
+    ret = JSON_init(buf);
 
     if( ret == ESP_OK){
-        if(json.string("qnt", (uint8_t*)tmp) > 0){    
+        if(JSON_string("qnt", (uint8_t*)tmp) > 0){    
             int32_t qnt = atoi(tmp);
             if(qnt > 0){
                 ESP_LOGI(TAG, "Dispensing %dg", qnt);
@@ -130,7 +130,7 @@ uint32_t size;
 char *buf;
 
     ESP_LOGI(TAG, "GET for URI: %s", req->uri);
-
+    // TODO: read/send in blocks on big lists
     size = REPO_GetSchedules(&buf);
 
     if(size > 0){

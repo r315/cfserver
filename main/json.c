@@ -2,10 +2,16 @@
 #include <esp_log.h>
 #include <esp_system.h>
 #include "json.h"
+#include "jsmn.h"
 
 static const char *TAG = "JSON";
+static jsmn_parser jp;
+static jsmntok_t jtokens[JSON_MAX_TOKENS];
+static int32_t jelements, curjelement;
+static uint8_t *jstr;
 
-static const char *jsmnParseErr(jsmnerr err){
+
+static const char *jsmnParseErr(int32_t err){
     switch(err){
         case JSMN_ERROR_NOMEM: return "JSMN_ERROR_NOMEM";
         case JSMN_ERROR_INVAL: return "JSMN_ERROR_INVAL";
@@ -29,13 +35,13 @@ static void jcpy(uint8_t *dst, uint8_t *src, uint32_t len){
     *(dst) = '\0';
 }
 
-esp_err_t Json::init(char *json){
+esp_err_t JSON_init(char *json){
     
     jsmn_init(&jp);
 
     jelements = jsmn_parse(&jp, json, strlen(json), jtokens, sizeof(jtokens) / sizeof(jtokens[0]));
     if (jelements < 0) {
-        ESP_LOGE(TAG, "Failed to parse JSON: %s", jsmnParseErr((jsmnerr)jelements));
+        ESP_LOGE(TAG, "Failed to parse JSON: %s", jsmnParseErr(jelements));
         ESP_LOGE(TAG, "JSON String : \n%s", json);
         return ESP_ERR_NOT_FOUND;
     }
@@ -58,7 +64,7 @@ esp_err_t Json::init(char *json){
 
 /**
  * */
-uint32_t Json::string(const char *name, uint8_t *dst){
+uint32_t JSON_string(const char *name, uint8_t *dst){
     uint32_t size = 0;
 
     for(uint32_t i = curjelement; i < jelements; i++){
@@ -76,7 +82,7 @@ uint32_t Json::string(const char *name, uint8_t *dst){
  * Move to next parsed token, the next strings will be parsed 
  * from this point on
  * */
-uint32_t Json::nextToken(jsmntype_t tok){
+uint32_t JSON_nextToken(jsmntype_t tok){
 	for(int i = curjelement + 1; i < jelements; i++){
 		if(jtokens[i].type == tok){
 			curjelement = i;

@@ -49,15 +49,14 @@ void onWifiDisconnect(void){
 extern "C" void server_init(void){    
     char *ptr;
     uint8_t tmp[64];
-    Json json;    
 
     if(REPO_ReadConfig(&ptr) > 0){
-        ESP_ERROR_CHECK(json.init(ptr));
-        if(json.string("ssid", tmp) > 0){
+        ESP_ERROR_CHECK(JSON_init(ptr));
+        if(JSON_string("ssid", tmp) > 0){
             server.set_ssid(tmp);
         }
 
-        if(json.string("password", tmp) > 0){
+        if(JSON_string("password", tmp) > 0){
             server.set_pass(tmp);
         }
         free(ptr);
