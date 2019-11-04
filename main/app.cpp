@@ -29,15 +29,6 @@
 static const char *TAG="App";
 static Cfserver server;
 
-typedef struct _schedule_t{
-    uint16_t qnt;              //5 chars
-    uint8_t repeat;            //3 chars
-    uint64_t time;             //20 chars
-}schedule_t;
-
-#define SCHEDULE_T_CHARS    28
-
-
 void onWifiConnected(void){
     SNTP_Init();
 }
@@ -86,54 +77,16 @@ static void saveSchedulers(node_t *head){
 }
 #endif
 
-static void loadSchedules(node_t *head){
-Json json;
-char *jstr;
-uint8_t tmp[10];
-
-    if(REPO_GetSchedules(&jstr) > 0){
-        ESP_ERROR_CHECK(json.init(jstr));
-        
-        while(json.nextToken(JSMN_OBJECT)){
-            schedule_t *sch = (schedule_t*)malloc(SCHEDULE_T_CHARS);
-		    if(sch == NULL){
-			    ESP_LOGE(TAG,"Unable to allocate schedule");			    
-		    }else{
-                if(json.string("qnt", tmp) > 0){
-                    sch->qnt = atoi((const char *)tmp);                    
-                }
-
-                if(json.string("repeat", tmp) > 0){
-                    sch->repeat = atoi((const char *)tmp);                    
-                }
-
-                if(json.string("time_t", tmp) > 0){
-                    sch->time = atol((const char *)tmp);                    
-                }                
-                node_t *node = createNode(sch);
-                if(node == NULL){
-			        ESP_LOGE(TAG,"Unable to allocate node");
-                }else{
-                    insertTail(head, node);
-                }
-            }
-        }
-        free(jstr);
-    }
-}
 
 extern "C" void app(void){
 time_t now;
 schedule_t *sch;
-node_t list;
 
     ESP_LOGI(TAG, "Running Application");
-    
-    loadSchedules(&list);
 
     while(1){
         now = SNTP_GetTime();
-        sch = (schedule_t*)(list.next->value);
+        sch = REPO_GetFirstSchedule();
         if(sch->time == now){            
                 printf("feeding\n");
         }        

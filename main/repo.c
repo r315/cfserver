@@ -10,8 +10,18 @@
 #include "esp_log.h"
 #include "esp_spiffs.h"
 #include "repo.h"
+#include "list.h"
+#include "json.h"
 
+static node_t list;
 
+uint32_t REPO_FreeSchedules(void){
+    return REPO_MAX_SCHEDULES - countNodes(&list);
+}
+
+void REPO_InitSchedules(void){
+    REPO_LoadSchedules(&list);
+}
 
 uint32_t REPO_ReadConfig(char **buf){
     return REPO_ReadFile((char*)CFG_PATH, buf);    
@@ -26,7 +36,9 @@ uint32_t REPO_GetSchedules(char **buf){
 }
 
 uint32_t REPO_PostSchedule(char *data, uint32_t len){
-    return REPO_WriteFile((char*)SCHEDULE_PATH, data, len);
+    if(REPO_FreeSchedules())
+        return REPO_WriteFile((char*)SCHEDULE_PATH, data, len);
+    return 0;
 }
 
 uint32_t REPO_DeleteSchedule(){
@@ -91,6 +103,9 @@ esp_err_t REPO_Init(void)
     } else {
         ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
     }
+
+    ESP_LOGI(TAG, "Loading schedules");
+    REPO_InitSchedules();
     return ESP_OK;
 }
 
@@ -181,3 +196,43 @@ esp_err_t repoFileResponse(httpd_req_t *req, char *filename){
 }
 
 */
+
+
+void REPO_LoadSchedules(node_t *head){
+char *jstr;
+uint8_t tmp[10];
+
+    if(REPO_GetSchedules(&jstr) > 0){
+        ESP_ERROR_CHECK(JSON_init(jstr));
+        
+        while(JSON_nextToken(JSMN_OBJECT)){
+            schedule_t *sch = (schedule_t*)malloc(SCHEDULE_T_CHARS);
+		    if(sch == NULL){
+			    ESP_LOGE(TAG,"Unable to allocate schedule");			    
+		    }else{
+                if(JSON_string("qnt", tmp) > 0){
+                    sch->qnt = atoi((const char *)tmp);                    
+                }
+
+                if(JSON_string("repeat", tmp) > 0){
+                    sch->repeat = atoi((const char *)tmp);                    
+                }
+
+                if(JSON_string("time_t", tmp) > 0){
+                    sch->time = atol((const char *)tmp);                    
+                }                
+                node_t *node = createNode(sch);
+                if(node == NULL){
+			        ESP_LOGE(TAG,"Unable to allocate node");
+                }else{
+                    insertTail(head, node);
+                }
+            }
+        }
+        free(jstr);
+    }
+}
+
+schedule_t *REPO_GetFirstSchedule(void){
+    return (schedule_t*)(list.next->value);
+}
