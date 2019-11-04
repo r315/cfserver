@@ -38,16 +38,17 @@ void onWifiDisconnect(void){
 }
 
 extern "C" void server_init(void){    
-    char *ptr;
-    uint8_t tmp[64];
+char *ptr;
+uint8_t tmp[64];
+Json js;
 
     if(REPO_ReadConfig(&ptr) > 0){
-        ESP_ERROR_CHECK(JSON_init(ptr));
-        if(JSON_string("ssid", tmp) > 0){
+        ESP_ERROR_CHECK(JSON_init(&js, ptr));
+        if(JSON_string(&js, "ssid", tmp) > 0){
             server.set_ssid(tmp);
         }
 
-        if(JSON_string("password", tmp) > 0){
+        if(JSON_string(&js, "password", tmp) > 0){
             server.set_pass(tmp);
         }
         free(ptr);

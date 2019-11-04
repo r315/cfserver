@@ -5,11 +5,6 @@
 #include "jsmn.h"
 
 static const char *TAG = "JSON";
-static jsmn_parser jp;
-static jsmntok_t jtokens[JSON_MAX_TOKENS];
-static int32_t jelements, curjelement;
-static uint8_t *jstr;
-
 
 static const char *jsmnParseErr(int32_t err){
     switch(err){
@@ -35,42 +30,42 @@ static void jcpy(uint8_t *dst, uint8_t *src, uint32_t len){
     *(dst) = '\0';
 }
 
-esp_err_t JSON_init(char *json){
+esp_err_t JSON_init(Json *js, char *jstr){
     
-    jsmn_init(&jp);
+    jsmn_init(&js->jp);
 
-    jelements = jsmn_parse(&jp, json, strlen(json), jtokens, sizeof(jtokens) / sizeof(jtokens[0]));
-    if (jelements < 0) {
-        ESP_LOGE(TAG, "Failed to parse JSON: %s", jsmnParseErr(jelements));
-        ESP_LOGE(TAG, "JSON String : \n%s", json);
+    js->jelements = jsmn_parse(&js->jp, jstr, strlen(jstr), js->jtokens, sizeof(js->jtokens) / sizeof(jsmntok_t));
+    if (js->jelements < 0) {
+        ESP_LOGE(TAG, "Failed to parse JSON: %s", jsmnParseErr(js->jelements));
+        ESP_LOGE(TAG, "JSON String : \n%s", jstr);
         return ESP_ERR_NOT_FOUND;
     }
     else{
-        ESP_LOGD(TAG, "%u elements parsed", jelements);
+        ESP_LOGD(TAG, "%u elements parsed", js->jelements);
     }
 
     /* Top-level element must be an object or array */
-    if (jelements < 1 || (jtokens[0].type != JSMN_OBJECT && jtokens[0].type != JSMN_ARRAY) ) {
+    if (js->jelements < 1 || (js->jtokens[0].type != JSMN_OBJECT && js->jtokens[0].type != JSMN_ARRAY) ) {
         ESP_LOGE(TAG, "Object or array expected");
         return ESP_ERR_NOT_FOUND;
     }
 
-    jstr = (uint8_t*)json;
+    js->jstr = (uint8_t*)jstr;
 
-    curjelement = 0;
+    js->curjelement = 0;
 
     return ESP_OK;
 }
 
 /**
  * */
-uint32_t JSON_string(const char *name, uint8_t *dst){
+uint32_t JSON_string(Json *js, const char *name, uint8_t *dst){
     uint32_t size = 0;
 
-    for(uint32_t i = curjelement; i < jelements; i++){
-        if (jsoneq(jstr, &jtokens[i], name) == 0) {
-            size = jtokens[i + 1].end - jtokens[i + 1].start;
-            jcpy(dst, jstr + jtokens[i + 1].start, size);
+    for(uint32_t i = js->curjelement; i < js->jelements; i++){
+        if (jsoneq(js->jstr, &js->jtokens[i], name) == 0) {
+            size = js->jtokens[i + 1].end - js->jtokens[i + 1].start;
+            jcpy(dst, js->jstr + js->jtokens[i + 1].start, size);
             //ESP_LOGW(TAG, "%s : %s", name, dst);
             break;
         }
@@ -82,11 +77,11 @@ uint32_t JSON_string(const char *name, uint8_t *dst){
  * Move to next parsed token, the next strings will be parsed 
  * from this point on
  * */
-uint32_t JSON_nextToken(jsmntype_t tok){
-	for(int i = curjelement + 1; i < jelements; i++){
-		if(jtokens[i].type == tok){
-			curjelement = i;
-			return curjelement;
+uint32_t JSON_nextToken(Json *js, jsmntype_t tok){
+	for(int i = js->curjelement + 1; i < js->jelements; i++){
+		if(js->jtokens[i].type == tok){
+			js->curjelement = i;
+			return js->curjelement;
 		}
 	}
 	return 0;

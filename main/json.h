@@ -11,9 +11,16 @@ extern "C" {
 
 #define JSON_MAX_TOKENS 100
 
-esp_err_t JSON_init(char *str);
-uint32_t JSON_string(const char *name, uint8_t *dst);
-uint32_t JSON_nextToken(jsmntype_t tok);
+typedef struct _Json{
+    jsmn_parser jp;
+    jsmntok_t jtokens[JSON_MAX_TOKENS];
+    int32_t jelements, curjelement;
+    uint8_t *jstr;
+}Json;
+
+esp_err_t JSON_init(Json *, char *str);
+uint32_t JSON_string(Json *, const char *name, uint8_t *dst);
+uint32_t JSON_nextToken(Json *, jsmntype_t tok);
 
 #ifdef __cplusplus
 }

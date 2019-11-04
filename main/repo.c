@@ -37,6 +37,7 @@ uint32_t REPO_GetSchedules(char **buf){
 
 uint32_t REPO_PostSchedule(char *data, uint32_t len){
     if(REPO_FreeSchedules())
+
         return REPO_WriteFile((char*)SCHEDULE_PATH, data, len);
     return 0;
 }
@@ -201,24 +202,25 @@ esp_err_t repoFileResponse(httpd_req_t *req, char *filename){
 void REPO_LoadSchedules(node_t *head){
 char *jstr;
 uint8_t tmp[10];
+Json js;
 
     if(REPO_GetSchedules(&jstr) > 0){
-        ESP_ERROR_CHECK(JSON_init(jstr));
+        ESP_ERROR_CHECK(JSON_init(&js, jstr));
         
-        while(JSON_nextToken(JSMN_OBJECT)){
+        while(JSON_nextToken(&js, JSMN_OBJECT)){
             schedule_t *sch = (schedule_t*)malloc(SCHEDULE_T_CHARS);
 		    if(sch == NULL){
 			    ESP_LOGE(TAG,"Unable to allocate schedule");			    
 		    }else{
-                if(JSON_string("qnt", tmp) > 0){
+                if(JSON_string(&js, "qnt", tmp) > 0){
                     sch->qnt = atoi((const char *)tmp);                    
                 }
 
-                if(JSON_string("repeat", tmp) > 0){
+                if(JSON_string(&js, "repeat", tmp) > 0){
                     sch->repeat = atoi((const char *)tmp);                    
                 }
 
-                if(JSON_string("time_t", tmp) > 0){
+                if(JSON_string(&js, "time_t", tmp) > 0){
                     sch->time = atol((const char *)tmp);                    
                 }                
                 node_t *node = createNode(sch);

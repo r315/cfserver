@@ -76,9 +76,9 @@ esp_err_t home_get_handler(httpd_req_t *req){
  * handler for POST /
  */
 esp_err_t feed_post_handler(httpd_req_t *req){
-    char *buf, tmp[TMP_BUF_LEN];
-
-    int ret = ESP_FAIL, len = req->content_len;
+Json js;
+char *buf, tmp[TMP_BUF_LEN];
+int ret = ESP_FAIL, len = req->content_len;
 
     ESP_LOGI(TAG, "POST for URI \"%s\"", req->uri);
 
@@ -99,10 +99,10 @@ esp_err_t feed_post_handler(httpd_req_t *req){
         goto err1;
     }
     
-    ret = JSON_init(buf);
+    ret = JSON_init(&js, buf);
 
     if( ret == ESP_OK){
-        if(JSON_string("qnt", (uint8_t*)tmp) > 0){    
+        if(JSON_string(&js, "qnt", (uint8_t*)tmp) > 0){    
             int32_t qnt = atoi(tmp);
             if(qnt > 0){
                 ESP_LOGI(TAG, "Dispensing %dg", qnt);
@@ -153,7 +153,7 @@ esp_err_t schedule_post_handler(httpd_req_t *req){
 
     char *data = (char*)malloc(len);
 
-     if(data == NULL){
+    if(data == NULL){
         httpd_resp_set_status(req, "507");
         error_message =  "Failed to allocate memory";
         ret = ESP_ERR_NO_MEM;
@@ -165,8 +165,10 @@ esp_err_t schedule_post_handler(httpd_req_t *req){
         error_message = "Failed receiving data";
         goto err1;
     }
-
-    REPO_PostSchedule(data, len);    
+    
+    if(!REPO_PostSchedule(data, len)){
+        httpd_resp_set_status(req, "507");
+    }
 
 err1:
     free(data);
