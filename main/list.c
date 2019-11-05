@@ -1,10 +1,13 @@
 #include "list.h"
 
-void insertTail(node_t *head, node_t *node){
+uint32_t insertTail(node_t *head, node_t *node){
+uint32_t count = 0;
 	while(head->next != NULL){
 		head = head->next;
+		count ++;
 	}
 	head->next = node;
+	return count;
 }
 
 node_t *createNode(void *value){

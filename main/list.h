@@ -9,7 +9,7 @@ typedef struct _node_t{
     void *value;
 }node_t;
 
-void insertTail(node_t *head, node_t *node);
+uint32_t insertTail(node_t *head, node_t *node);
 node_t *createNode(void *value);
 void removeNode(node_t *head, node_t *node);
 uint32_t countNodes(node_t *head);
