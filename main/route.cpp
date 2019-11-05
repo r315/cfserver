@@ -49,7 +49,9 @@ httpd_uri_t *ROUTE_GetUriList(void){
 }
 
 /**
+ * 
  * handler for GET /
+ * 
  */
 esp_err_t home_get_handler(httpd_req_t *req){
     
@@ -73,7 +75,9 @@ esp_err_t home_get_handler(httpd_req_t *req){
 }
 
 /**
- * handler for POST /
+ * 
+ * handler for POST /feed
+ * 
  */
 esp_err_t feed_post_handler(httpd_req_t *req){
 Json js;
@@ -125,12 +129,15 @@ err0:
     return ret;
 }
 
+/**
+ * Handler for GET /scheduler
+ * */
 esp_err_t schedule_get_handler(httpd_req_t *req){
 uint32_t size;
 char *buf;
 
     ESP_LOGI(TAG, "GET for URI: %s", req->uri);
-    // TODO: read/send in blocks on big lists
+    // TODO: read/send in blocks on big lists?
     size = REPO_GetSchedules(&buf);
 
     if(size > 0){
@@ -144,6 +151,9 @@ char *buf;
     return ESP_FAIL;        
 }
 
+/**
+ * Handler for POST /scehduler
+ * */
 esp_err_t schedule_post_handler(httpd_req_t *req){
     ESP_LOGI(TAG, "POST for URI: %s", req->uri);
 
