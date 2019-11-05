@@ -27,7 +27,7 @@ uint32_t REPO_ReadConfig(char **buf){
     return REPO_ReadFile((char*)CFG_PATH, buf);    
 }
 
-uint32_t REPO_HomePage(char **buf){
+uint32_t REPO_GetHomePage(char **buf){
     return REPO_ReadFile((char*)HOME_PAGE_PATH, buf);
 }
 
@@ -36,9 +36,12 @@ uint32_t REPO_GetSchedules(char **buf){
 }
 
 uint32_t REPO_PostSchedule(char *data, uint32_t len){
-    if(REPO_FreeSchedules())
-
+Json js;
+    if(REPO_FreeSchedules()){
+        JSON_init(&js, data);
+        REPO_InsertScheduleFromJson(&js, &list);
         return REPO_WriteFile((char*)SCHEDULE_PATH, data, len);
+    }
     return 0;
 }
 
@@ -66,9 +69,6 @@ uint32_t REPO_DeleteSchedule(){
  * SPIFFS_ALIGNED_OBJECT_INDEX_TABLES: 4
  * 
  */
-
-
-
 static const char *TAG = "REPO";
 
 static esp_vfs_spiffs_conf_t conf = {
@@ -181,60 +181,68 @@ uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len){
     return bw;    
 }
 
-/*
+schedule_t *DAO_JsonToSchedule(Json *js){
+schedule_t *sch = (schedule_t*)malloc(SCHEDULE_T_CHARS);
+uint8_t tmp[10];
 
-esp_err_t repoFileResponse(httpd_req_t *req, char *filename){
-    ESP_LOGI(TAG, "Reading file \"%s\"", filename);
-    
-    FILE *fp = fopen(filename, "r");
-    if (fp == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for reading");
-        return ESP_ERR_NOT_FOUND;
+    if(sch == NULL)
+        return NULL;
+    if(JSON_string(js, "qnt", tmp) > 0){
+        sch->qnt = atoi((const char *)tmp);                    
     }
 
-    //https://github.com/espressif/esp-idf/issues/3363
-    return ESP_OK;
+    if(JSON_string(js, "repeat", tmp) > 0){
+        sch->repeat = atoi((const char *)tmp);                    
+    }
+
+    if(JSON_string(js, "time_t", tmp) > 0){
+        sch->time = atol((const char *)tmp);                    
+    }                
+    return sch;
 }
 
-*/
+/**
+ * Try to create and insert an schedule into the schedules list
+ * 
+ * \param js    pointer to json local data
+ * \param head  head of the list to insert schedule
+ * \return      index of inserted position, -1 if fail
+ * */
+int32_t REPO_InsertScheduleFromJson(Json *js, node_t *head){
+schedule_t *sch = DAO_JsonToSchedule(js);
+int32_t inserted = -1;
 
+    if(sch == NULL){
+        ESP_LOGE(TAG,"Unable to create schedule");			    
+    }else{                
+        node_t *node = createNode(sch);
+        if(node == NULL){
+            ESP_LOGE(TAG,"Unable to create node");
+            free(sch);
+        }else{
+            inserted = insertTail(head, node);
+        }
+    }
+    return inserted;
+}
 
+/**
+ * Reads schedules from json file and 
+ * loads them into local list
+ * \param   head  pointer to list head
+ * */
 void REPO_LoadSchedules(node_t *head){
 char *jstr;
-uint8_t tmp[10];
 Json js;
-
-    if(REPO_GetSchedules(&jstr) > 0){
-        ESP_ERROR_CHECK(JSON_init(&js, jstr));
-        
+    if(REPO_ReadFile((char*)SCHEDULE_PATH, &jstr) > 0){
+        ESP_ERROR_CHECK(JSON_init(&js, jstr));        
         while(JSON_nextToken(&js, JSMN_OBJECT)){
-            schedule_t *sch = (schedule_t*)malloc(SCHEDULE_T_CHARS);
-		    if(sch == NULL){
-			    ESP_LOGE(TAG,"Unable to allocate schedule");			    
-		    }else{
-                if(JSON_string(&js, "qnt", tmp) > 0){
-                    sch->qnt = atoi((const char *)tmp);                    
-                }
-
-                if(JSON_string(&js, "repeat", tmp) > 0){
-                    sch->repeat = atoi((const char *)tmp);                    
-                }
-
-                if(JSON_string(&js, "time_t", tmp) > 0){
-                    sch->time = atol((const char *)tmp);                    
-                }                
-                node_t *node = createNode(sch);
-                if(node == NULL){
-			        ESP_LOGE(TAG,"Unable to allocate node");
-                }else{
-                    insertTail(head, node);
-                }
-            }
+            REPO_InsertScheduleFromJson(&js, head);    
         }
         free(jstr);
     }
 }
 
-schedule_t *REPO_GetFirstSchedule(void){
+schedule_t *REPO_FirstSchedule(void){
     return (schedule_t*)(list.next->value);
 }

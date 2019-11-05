@@ -61,7 +61,7 @@ esp_err_t home_get_handler(httpd_req_t *req){
     //httpd_resp_send(req, resp_str, strlen(resp_str));
 
     char *buf;
-    uint32_t size = REPO_HomePage(&buf);
+    uint32_t size = REPO_GetHomePage(&buf);
 
     if(size > 0){
         httpd_resp_send(req, buf, size);

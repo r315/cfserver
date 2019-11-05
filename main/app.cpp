@@ -87,7 +87,7 @@ schedule_t *sch;
 
     while(1){
         now = SNTP_GetTime();
-        sch = REPO_GetFirstSchedule();
+        sch = REPO_FirstSchedule();
         if(sch->time == now){            
                 printf("feeding\n");
         }        

@@ -8,6 +8,7 @@ extern "C" {
 #include <stdint.h>
 #include <esp_system.h>
 #include "list.h"
+#include "json.h"
 
 #define REPO_MAX_SCHEDULES  5
 
@@ -27,18 +28,23 @@ typedef struct _schedule_t{
 
 uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len);
 uint32_t REPO_ReadFile(char *filename, char **buf);
-uint32_t REPO_HomePage(char **buf);
 uint32_t REPO_ReadConfig(char **buf);
+uint32_t REPO_GetHomePage(char **buf);
 uint32_t REPO_GetSchedules(char **buf);
 uint32_t REPO_PostSchedule(char *data, uint32_t len);
+//uint32_t REPO_DeleteSchedule()
 
 esp_err_t REPO_Init(void);
 esp_err_t REPO_ReadWifiConfig(void);
 esp_err_t REPO_SaveWifiConfig(void);
 
 void REPO_LoadSchedules(node_t *head);
+//void REPO_SaveSchedules();
+int32_t REPO_InsertScheduleFromJson(Json *js, node_t *head);
 uint32_t REPO_FreeSchedules(void);
-schedule_t *REPO_GetFirstSchedule(void);
+schedule_t *REPO_FirstSchedule(void);
+
+schedule_t *DAO_JsonToSchedule(Json *js);
 
 #ifdef __cplusplus
 }
