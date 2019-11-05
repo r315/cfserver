@@ -25,6 +25,7 @@
 #include "json.h"
 #include "route.h"
 #include "sntp.h"
+#include "dal.h"
 
 static const char *TAG="App";
 static Cfserver server;

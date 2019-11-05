@@ -17,7 +17,7 @@ extern "C" {
 #define CFG_PATH        REPO_ROOT"/wificfg.json"
 #define SCHEDULE_PATH   REPO_ROOT"/schedule.json"
 
-#define SCHEDULE_T_CHARS    28
+#define SCHEDULE_T_CHARS    64
 
 typedef struct _schedule_t{
     uint16_t qnt;              //5 chars
@@ -32,19 +32,15 @@ uint32_t REPO_ReadConfig(char **buf);
 uint32_t REPO_GetHomePage(char **buf);
 uint32_t REPO_GetSchedules(char **buf);
 uint32_t REPO_PostSchedule(char *data, uint32_t len);
-//uint32_t REPO_DeleteSchedule()
+//uint32_t REPO_DeleteSchedule();
 
 esp_err_t REPO_Init(void);
 esp_err_t REPO_ReadWifiConfig(void);
 esp_err_t REPO_SaveWifiConfig(void);
 
-void REPO_LoadSchedules(node_t *head);
 //void REPO_SaveSchedules();
-int32_t REPO_InsertScheduleFromJson(Json *js, node_t *head);
-uint32_t REPO_FreeSchedules(void);
-schedule_t *REPO_FirstSchedule(void);
 
-schedule_t *DAO_JsonToSchedule(Json *js);
+schedule_t *REPO_FirstSchedule(void);
 
 #ifdef __cplusplus
 }

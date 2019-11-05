@@ -12,17 +12,22 @@
 #include "repo.h"
 #include "list.h"
 #include "json.h"
+#include "dal.h"
 
 static node_t list;
+static const char *TAG = "REPO";
 
+/**
+ * Private API
+ * */
+static int32_t REPO_InsertScheduleFromJson(Json *js, node_t *head);
 uint32_t REPO_FreeSchedules(void){
     return REPO_MAX_SCHEDULES - countNodes(&list);
 }
 
-void REPO_InitSchedules(void){
-    REPO_LoadSchedules(&list);
-}
-
+/**
+ * Public API
+ * */
 uint32_t REPO_ReadConfig(char **buf){
     return REPO_ReadFile((char*)CFG_PATH, buf);    
 }
@@ -32,7 +37,12 @@ uint32_t REPO_GetHomePage(char **buf){
 }
 
 uint32_t REPO_GetSchedules(char **buf){
-    return REPO_ReadFile((char*)SCHEDULE_PATH, buf);
+	char *jstr = DAL_ListToJson(&list);
+	if(jstr != NULL){
+		*buf = jstr;
+		return strlen(jstr);
+	}
+	return 0;
 }
 
 uint32_t REPO_PostSchedule(char *data, uint32_t len){
@@ -48,6 +58,18 @@ Json js;
 uint32_t REPO_DeleteSchedule(){
     return 0;
 }
+
+
+/**
+ * \return pointer to first schedule on list, or null is list is empty
+ * */
+schedule_t *REPO_FirstSchedule(void){
+node_t *node = list.next;
+    if(node == NULL)
+        return NULL;
+    return (schedule_t*)(node->value);
+}
+
 
 /**
  * https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-guides/partition-tables.html
@@ -69,8 +91,6 @@ uint32_t REPO_DeleteSchedule(){
  * SPIFFS_ALIGNED_OBJECT_INDEX_TABLES: 4
  * 
  */
-static const char *TAG = "REPO";
-
 static esp_vfs_spiffs_conf_t conf = {
     .base_path = "/spiffs",
     .partition_label = NULL,
@@ -78,6 +98,26 @@ static esp_vfs_spiffs_conf_t conf = {
     .format_if_mount_failed = true
 };
 
+/**
+ * Reads schedules from json file and 
+ * loads them into local list
+ * \param   head  pointer to list head
+ * */
+static void REPO_LoadSchedules(node_t *head, char *filename){
+char *jstr;
+Json js;
+    if(REPO_ReadFile(filename, &jstr) > 0){
+        ESP_ERROR_CHECK(JSON_init(&js, jstr));        
+        while(JSON_nextToken(&js, JSMN_OBJECT)){
+            REPO_InsertScheduleFromJson(&js, head);    
+        }
+        free(jstr);
+    }
+}
+
+/**
+ * 
+ * */
 esp_err_t REPO_Init(void)
 {
     ESP_LOGI(TAG, "Initializing SPIFFS");   
@@ -106,7 +146,7 @@ esp_err_t REPO_Init(void)
     }
 
     ESP_LOGI(TAG, "Loading schedules");
-    REPO_InitSchedules();
+    REPO_LoadSchedules(&list, (char*)SCHEDULE_PATH);
     return ESP_OK;
 }
 
@@ -114,6 +154,9 @@ esp_err_t REPO_Init(void)
  * Read file content to allocated memory, must be freed after used
  * Note This adds one extra byte to the file content for ending strings.
  * for data files the returned sized must be used
+ * \param filename  name of the file to be accessed
+ * \param buf       pointer to destination buffer
+ * \return          number of bytes read
  * */
 uint32_t REPO_ReadFile(char *filename, char **buf){
  
@@ -156,6 +199,11 @@ uint32_t REPO_ReadFile(char *filename, char **buf){
     return size;
 }
 
+/**
+ * \param filename  name of the file to be accessed
+ * \param buf       pointer to destination buffer
+ * \return          number of bytes written
+ * */
 uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len){
  
     ESP_LOGI(TAG, "Writing to file \"%s\"", filename);
@@ -181,35 +229,15 @@ uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len){
     return bw;    
 }
 
-schedule_t *DAO_JsonToSchedule(Json *js){
-schedule_t *sch = (schedule_t*)malloc(SCHEDULE_T_CHARS);
-uint8_t tmp[10];
-
-    if(sch == NULL)
-        return NULL;
-    if(JSON_string(js, "qnt", tmp) > 0){
-        sch->qnt = atoi((const char *)tmp);                    
-    }
-
-    if(JSON_string(js, "repeat", tmp) > 0){
-        sch->repeat = atoi((const char *)tmp);                    
-    }
-
-    if(JSON_string(js, "time_t", tmp) > 0){
-        sch->time = atol((const char *)tmp);                    
-    }                
-    return sch;
-}
-
 /**
  * Try to create and insert an schedule into the schedules list
  * 
- * \param js    pointer to json local data
+ * \param js    pointer to json object
  * \param head  head of the list to insert schedule
  * \return      index of inserted position, -1 if fail
  * */
-int32_t REPO_InsertScheduleFromJson(Json *js, node_t *head){
-schedule_t *sch = DAO_JsonToSchedule(js);
+static int32_t REPO_InsertScheduleFromJson(Json *js, node_t *head){
+schedule_t *sch = DAL_JsonToSchedule(js);
 int32_t inserted = -1;
 
     if(sch == NULL){
@@ -224,25 +252,4 @@ int32_t inserted = -1;
         }
     }
     return inserted;
-}
-
-/**
- * Reads schedules from json file and 
- * loads them into local list
- * \param   head  pointer to list head
- * */
-void REPO_LoadSchedules(node_t *head){
-char *jstr;
-Json js;
-    if(REPO_ReadFile((char*)SCHEDULE_PATH, &jstr) > 0){
-        ESP_ERROR_CHECK(JSON_init(&js, jstr));        
-        while(JSON_nextToken(&js, JSMN_OBJECT)){
-            REPO_InsertScheduleFromJson(&js, head);    
-        }
-        free(jstr);
-    }
-}
-
-schedule_t *REPO_FirstSchedule(void){
-    return (schedule_t*)(list.next->value);
 }
