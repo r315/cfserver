@@ -68,6 +68,8 @@ uint32_t REPO_DeleteSchedule(){
 
 
 /**
+ * Return the first schedule on the list. The list is not public, so public 
+ * API does not require passing a list
  * \return pointer to first schedule on list, or null is list is empty
  * */
 schedule_t *REPO_FirstSchedule(void){
@@ -161,6 +163,7 @@ esp_err_t REPO_Init(void)
  * Read file content to allocated memory, must be freed after used
  * Note This adds one extra byte to the file content for ending strings.
  * for data files the returned sized must be used
+ *
  * \param filename  name of the file to be accessed
  * \param buf       pointer to destination buffer
  * \return          number of bytes read
@@ -238,6 +241,7 @@ uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len){
 
 /**
  * Try to create and insert an schedule into the schedules list
+ * node and schedule should be free when removed from list
  * 
  * \param js    pointer to json object
  * \param head  head of the list to insert schedule
