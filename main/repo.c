@@ -21,6 +21,7 @@ static const char *TAG = "REPO";
  * Private API
  * */
 static int32_t REPO_InsertScheduleFromJson(Json *js, node_t *head);
+static uint32_t REPO_SaveSchedules(node_t *head);
 uint32_t REPO_FreeSchedules(void){
     return REPO_MAX_SCHEDULES - countNodes(&list);
 }
@@ -253,3 +254,21 @@ int32_t inserted = -1;
     }
     return inserted;
 }
+
+/**
+ * Convert a schedules list to JSON and save to file on spiffs
+ * 
+ * \param head	list to be saved
+ * \return number of bytes written to file, 0 if fail
+ */
+static uint32_t REPO_SaveSchedules(node_t *head){
+char *jstr = DAL_ListToJson(head);
+uint32_t count = 0;
+	if(jstr != NULL){		
+		count = strlen(jstr);
+		count = REPO_WriteFile((char*)SCHEDULE_PATH, jstr, count);
+		free(jstr);
+	}
+	return count;
+}
+

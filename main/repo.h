@@ -38,8 +38,6 @@ esp_err_t REPO_Init(void);
 esp_err_t REPO_ReadWifiConfig(void);
 esp_err_t REPO_SaveWifiConfig(void);
 
-//void REPO_SaveSchedules();
-
 schedule_t *REPO_FirstSchedule(void);
 
 #ifdef __cplusplus
