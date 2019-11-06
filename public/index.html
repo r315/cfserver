@@ -18,6 +18,10 @@
         
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.0/font/css/open-iconic-bootstrap.min.css" />
     <style>
+        span:hover {
+            color: rgb(55, 187, 248) !important;
+            cursor:pointer;
+        }
     </style>
 </head>
 <body>
@@ -33,18 +37,18 @@
     <br>
     <main role="main" class="container">
         <div class="modal-footer">
-            <button type="button" class="btn btn-primary" onclick="feedSmalDose();">Feed</button>
+            <button type="button" class="btn btn-primary" onclick="feedSmallDose();">Feed</button>
             <button class="btn btn-primary" data-toggle="modal" data-target=".new-list-modal">New schedule</button>
         </div>
         <section class="col" style="solid #ccc; overflow:auto;">
             <table class="table table-dark">
                 <thead>
                     <tr>
-                        <th scope="col" style="width:auto; font-size:3vw;">#</th>
-                        <th scope="col" style="width:auto; font-size:3vw;">Schedule</th>
-                        <th scope="col" style="width:auto; font-size:3vw;">Repeat</th>
-                        <th scope="col" style="width:auto; font-size:3vw;">Quantity</th>
-                        <th scope="col" style="width:auto; font-size:3vw;">Active</th>
+                        <th scope="col" style="width:auto; font-size:2vw;">#</th>
+                        <th scope="col" style="width:auto; font-size:2vw;">Schedule</th>
+                        <th scope="col" style="width:auto; font-size:2vw;">Repeat</th>
+                        <th scope="col" style="width:auto; font-size:2vw;">Quantity</th>
+                        <th scope="col" style="width:auto; font-size:2vw;" colspan="2">Active</th>
                     </tr>
                 </thead>
                 <tbody id="tbl-schedules"></tbody>
@@ -105,18 +109,22 @@
         }
 
         function insertCheckCell(row, checked) {
-            let cell = row.insertCell(-1)
+            let cell = row.insertCell(-1)           // <td>
             let input = document.createElement("input")
+
             input.type = "checkbox"
-            input.align = "center"
+            input.align = "left"
             if (checked == true) input.checked = "checked"
-            //cell.align = "center"
+            cell.align = "center"
             cell.appendChild(input)
-            // Remove icon
-            //<span class="oi oi-icon-name" title="icon name" aria-hidden="true"></span>            
-            let span = document.createElement("span")
+            
+            // Remove icon      
+            cell = row.insertCell(-1)
+            let span = document.createElement("span")            
+            cell.align = "right"
             span.className = "oi oi-trash"
-            span.align = "left"
+            span.onclick = deleteSchedule
+            span.rowIndex = cell.parentElement.rowIndex // <tr> index
             cell.appendChild(span)
         }
 
@@ -150,14 +158,13 @@
             sch.qnt = document.getElementById("sch-qnt").value
             let t = document.getElementById("sch-time").value.split(':')
             sch.dateTime = new Date()
-            sch.dateTime.setHours(t[0], t[1])
-            sch.time_t = sch.dateTime.getTime()
-            insertSchedule(sch)
+            //sch.dateTime.setHours(t[0], t[1])
+            sch.time = sch.dateTime.getTime()
             schedules.push(sch)
-            postSchedule();
+            postSchedule(sch);
         }
 
-        function feedSmalDose() {
+        function feedSmallDose() {
             let sch = {
                 "repeat": 24,
                 "qnt": 500,
@@ -181,34 +188,55 @@
             xhr.send(JSON.stringify(sch))
         }
 
+        function showSchedules(sch){
+            if(Array.isArray(sch)){ // we expect an array..
+                let tab = document.getElementById("tbl-schedules")
+                tab.innerHTML = ""
+                schedules = sch
+                schedules.forEach(element => {
+                    element.dateTime = new Date(element.time) //toDateTime(element.time)
+                        insertSchedule(element)
+                })
+            }else{
+                schedules = []
+            }
+        }
+
         function getSchedules() {
             let xhr = new XMLHttpRequest()
             xhr.open("GET", "/schedule", true)            
             xhr.onreadystatechange = () => {
                 if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                    schedules = JSON.parse(xhr.responseText);
-                    if(Array.isArray(schedules)){ // we expect an array..
-                        schedules.forEach(element => {
-                            element.dateTime = toDateTime(element.time_t)
-                            insertSchedule(element)
-                        })
-                    }else{schedules = []}
+                    showSchedules(JSON.parse(xhr.responseText))                    
                 }
             }
             xhr.send()
         }
 
-        function postSchedule(){
+        function postSchedule(sch){
             let xhr = new XMLHttpRequest()
             //let url = window.location.pathname
             xhr.open("POST", "/schedule", true)
             xhr.setRequestHeader("Content-Type", "application/json")
             xhr.onreadystatechange = () => {
                 if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                    //console.log("feed done")
+                    getSchedules()
                 }
             }
-            xhr.send(JSON.stringify(schedules))
+            xhr.send(JSON.stringify(sch))
+        }
+
+        function deleteSchedule(){
+            let xhr = new XMLHttpRequest()            
+            //console.log(this.rowIndex)
+            xhr.open("DELETE", "/schedule", true)
+            xhr.setRequestHeader("Content-Type", "application/json")
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    getSchedules()
+                }
+            }
+            xhr.send(`{\"index\":${this.rowIndex}}`)
         }
 
         function toDateTime(secs) {

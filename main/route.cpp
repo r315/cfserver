@@ -15,6 +15,7 @@ esp_err_t home_get_handler(httpd_req_t *req);
 esp_err_t schedule_get_handler(httpd_req_t *req);
 esp_err_t feed_post_handler(httpd_req_t *req);
 esp_err_t schedule_post_handler(httpd_req_t *req);
+esp_err_t schedule_delete_handler(httpd_req_t *req);
 
 httpd_uri_t handlers [] = {
     {
@@ -39,6 +40,12 @@ httpd_uri_t handlers [] = {
         .uri = "/schedule",
         .method = HTTP_POST,
         .handler = schedule_post_handler,
+        .user_ctx = NULL
+    },
+    {
+        .uri = "/schedule",
+        .method = HTTP_DELETE,
+        .handler = schedule_delete_handler,
         .user_ctx = NULL
     },
     NULL
@@ -152,7 +159,7 @@ char *buf;
 }
 
 /**
- * Handler for POST /scehduler
+ * Handler for POST /scheduler
  * */
 esp_err_t schedule_post_handler(httpd_req_t *req){
     ESP_LOGI(TAG, "POST for URI: %s", req->uri);
@@ -175,7 +182,7 @@ esp_err_t schedule_post_handler(httpd_req_t *req){
         error_message = "Failed receiving data";
         goto err1;
     }
-    
+
     if(!REPO_PostSchedule(data, len)){
         httpd_resp_set_status(req, "507");
     }
@@ -194,8 +201,14 @@ err0:
     return ret;
 }
 
-
-
+/**
+ * Handler for POST /scheduler
+ * */
+esp_err_t schedule_delete_handler(httpd_req_t *req){
+    ESP_LOGI(TAG, "DELETE for URI: %s", req->uri);
+    httpd_resp_send(req, "ok", 2);
+    return ESP_OK;
+}
 #if 0
 /**
  * Handler for GET /ctrl
