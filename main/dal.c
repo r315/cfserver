@@ -20,8 +20,8 @@ uint8_t tmp[10];
         sch->repeat = atoi((const char *)tmp);                    
     }
 
-    if(JSON_string(js, "time_t", tmp) > 0){
-        sch->time = atol((const char *)tmp);                    
+    if(JSON_string(js, "time", tmp) > 0){
+        sch->time = atoll((const char *)tmp);                    
     }                
     return sch;
 }
@@ -34,14 +34,20 @@ char *jstr = (char*)malloc(SCHEDULE_T_CHARS);
 	 if(jstr == NULL)
         return NULL;
 	
-	sprintf(jstr, "{\"qnt\":%d,\"repeat\":%d,\"time\":%lld}", 
+	sprintf(jstr, "{\"qnt\":%d,\"repeat\":%d,\"time\":%llu}", 
 		sch->qnt,
 		sch->repeat,
 		sch->time);
+
+		//printf("{\"qnt\":%d,\"repeat\":%d,\"time\":%llu}\n",sch->qnt,sch->repeat,sch->time);
 	return jstr;
 }
 
 /**
+ * convert a list of schedules into a JSON string
+ * 
+ * \param head  list head
+ * \return pointer to JSON string, pointer should be free after use 
  * */
 char *DAL_ListToJson(node_t *head){
 char *jstr = (char*)malloc(REPO_MAX_SCHEDULES * SCHEDULE_T_CHARS);
