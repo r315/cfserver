@@ -48,10 +48,16 @@ uint32_t REPO_GetSchedules(char **buf){
 
 uint32_t REPO_PostSchedule(char *data, uint32_t len){
 Json js;
+
+    // json expected, ensure terminated string
+    data[len] = '\0';
+
     if(REPO_FreeSchedules()){
-        JSON_init(&js, data);
-        REPO_InsertScheduleFromJson(&js, &list);
-        return REPO_WriteFile((char*)SCHEDULE_PATH, data, len);
+        if(JSON_init(&js, data) == ESP_OK){
+            ESP_LOGI(TAG,"%s\n",data);
+        	if(REPO_InsertScheduleFromJson(&js, &list) > 0)        		
+        		return REPO_SaveSchedules(&list);
+    }
     }
     return 0;
 }
