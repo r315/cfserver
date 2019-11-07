@@ -14,7 +14,7 @@
 const char* prompt = LOG_COLOR_I "cfserver> " LOG_RESET_COLOR;
 const char *TAG = "cfconsole";
 
-static void consoleProcess(void){
+static void consoleProcess(void *ptr){
  /* Figure out if the terminal supports escape sequences */
     int probe_status = linenoiseProbe();
     if (probe_status) { /* zero indicates success */

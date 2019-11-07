@@ -138,9 +138,7 @@ static void register_wifi()
 /* 'time'  */
 static int system_time(int argc, char **argv)
 {
-    time_t *time = SNTP_GetTime();
     SNTP_PrintTime();
-    //printf("%ld\n", *time);
     return 0;
 }
 
@@ -163,4 +161,5 @@ void register_system()
     register_version();
     register_restart();
     register_time();
+    register_wifi();
 }

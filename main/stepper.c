@@ -85,7 +85,7 @@ uint32_t pulse;
 
     if(argc < 2){
         ESP_LOGI(TAG,"Current pulse: %u",pulse_width);
-        return;
+        return 0;
     }
 
 

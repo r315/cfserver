@@ -131,7 +131,7 @@ void Cfserver::register_uri(httpd_uri_t *uri){
 }
 
 /** 
- * string copy of unkown size
+ * copy string ended by \n or \0
  * */
 static void chrcpy(uint8_t *dst, uint8_t *src){
     while(*src != '\n' && *src != '\0'){
