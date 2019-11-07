@@ -184,7 +184,7 @@ esp_err_t schedule_post_handler(httpd_req_t *req){
     }
 
     if(!REPO_PostSchedule(data, len)){
-        httpd_resp_set_status(req, "507");
+        httpd_resp_set_status(req, "400");
     }
 
 err1:
@@ -206,8 +206,41 @@ err0:
  * */
 esp_err_t schedule_delete_handler(httpd_req_t *req){
     ESP_LOGI(TAG, "DELETE for URI: %s", req->uri);
-    httpd_resp_send(req, "ok", 2);
-    return ESP_OK;
+    
+    const char *error_message = NULL;
+    uint32_t len = req->content_len;
+    char *data = (char*)malloc(len);
+    int ret = ESP_OK;
+
+    if(data == NULL){
+        httpd_resp_set_status(req, "507");
+        error_message =  "Failed to allocate memory";
+        ret = ESP_ERR_NO_MEM;
+        goto err0;
+    }
+
+    if ((ret = httpd_req_recv(req, data, len)) <= 0) {
+        httpd_resp_set_status(req, "500");
+        error_message = "Failed receiving data";
+        goto err1;
+    }
+
+    if(!REPO_DeleteSchedule(data, len)){
+        httpd_resp_set_status(req, "400");  // bad request
+    }    
+
+err1:
+    free(data);
+err0:
+
+    if(error_message == NULL){
+        httpd_resp_send(req, "ok", 2);
+        return ESP_OK;
+    }
+
+    ESP_LOGE(TAG, "%s", error_message);
+    httpd_resp_send(req, error_message, strlen(error_message));
+    return ret;
 }
 #if 0
 /**

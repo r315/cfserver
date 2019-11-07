@@ -57,12 +57,28 @@ Json js;
             //ESP_LOGI(TAG,"%s\n",data);
         	if(REPO_InsertScheduleFromJson(&js, &list) >= 0)        		
         		return REPO_SaveSchedules(&list);
-    }
+        }
     }
     return 0;
 }
 
-uint32_t REPO_DeleteSchedule(){
+uint32_t REPO_DeleteSchedule(char *data, uint32_t len){
+Json js;        
+uint8_t tmp[10];
+
+    data[len] = '\0';
+
+    if(JSON_init(&js, data) == ESP_OK){
+        if(JSON_string(&js, "index", tmp) > 0){
+            int32_t idx = atoi((const char *)tmp);
+            if(idx <= REPO_MAX_SCHEDULES){                
+                ESP_LOGI(TAG,"Deleting index %d",idx);                
+                if(removeNodeByIndex(&list, idx - 1) >= 0){ // send corrected index
+                    return REPO_SaveSchedules(&list);
+                }
+            }
+        }
+    }     
     return 0;
 }
 
@@ -257,7 +273,7 @@ int32_t inserted = -1;
         node_t *node = createNode(sch);
         if(node == NULL){
             ESP_LOGE(TAG,"Unable to create node");
-            free(sch);
+	        free(sch);
         }else{
             inserted = insertTail(head, node);
             ESP_LOGI(TAG,"Schedule count :%d", countNodes(head));

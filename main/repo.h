@@ -32,7 +32,7 @@ uint32_t REPO_ReadConfig(char **buf);
 uint32_t REPO_GetHomePage(char **buf);
 uint32_t REPO_GetSchedules(char **buf);
 uint32_t REPO_PostSchedule(char *data, uint32_t len);
-//uint32_t REPO_DeleteSchedule();
+uint32_t REPO_DeleteSchedule(char *data, uint32_t len);
 
 esp_err_t REPO_Init(void);
 esp_err_t REPO_ReadWifiConfig(void);
