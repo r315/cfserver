@@ -13,5 +13,6 @@ uint32_t insertTail(node_t *head, node_t *node);
 node_t *createNode(void *value);
 void removeNode(node_t *head, node_t *node);
 uint32_t countNodes(node_t *head);
+int32_t removeNodeByIndex(node_t *head, uint32_t index);
 
 #endif
