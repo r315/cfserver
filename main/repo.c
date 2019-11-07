@@ -260,6 +260,7 @@ int32_t inserted = -1;
             free(sch);
         }else{
             inserted = insertTail(head, node);
+            ESP_LOGI(TAG,"Schedule count :%d", countNodes(head));
         }
     }
     return inserted;
