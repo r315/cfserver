@@ -13,6 +13,7 @@
 #include "list.h"
 #include "json.h"
 #include "dal.h"
+#include "stepper.h"
 
 static node_t list;
 static const char *TAG = "REPO";
@@ -46,11 +47,8 @@ uint32_t REPO_GetSchedules(char **buf){
 	return 0;
 }
 
-uint32_t REPO_PostSchedule(char *data, uint32_t len){
+uint32_t REPO_PostSchedule(char *data){
 Json js;
-
-    // json expected, ensure terminated string
-    data[len] = '\0';
 
     if(REPO_FreeSchedules()){
         if(JSON_init(&js, data) == ESP_OK){
@@ -62,11 +60,9 @@ Json js;
     return 0;
 }
 
-uint32_t REPO_DeleteSchedule(char *data, uint32_t len){
+uint32_t REPO_DeleteSchedule(char *data){
 Json js;        
 uint8_t tmp[10];
-
-    data[len] = '\0';
 
     if(JSON_init(&js, data) == ESP_OK){
         if(JSON_string(&js, "index", tmp) > 0){
@@ -82,7 +78,20 @@ uint8_t tmp[10];
     return 0;
 }
 
-
+uint32_t REPO_DispenseFood(char *data){
+Json js;
+uint8_t tmp[10];
+    if(JSON_init(&js, data) == ESP_OK){
+        if(JSON_string(&js, "qnt", tmp) > 0){
+            int32_t qnt = atoi((const char *)tmp);
+            if(qnt > 0){
+                ESP_LOGI(TAG, "Dispensing %dg", qnt);
+                STEP_MoveSteps(qnt);
+            } 
+        }
+    }
+	return 0;
+}
 /**
  * Return the first schedule on the list. The list is not public, so public 
  * API does not require passing a list
@@ -132,9 +141,10 @@ static void REPO_LoadSchedules(node_t *head, char *filename){
 char *jstr;
 Json js;
     if(REPO_ReadFile(filename, &jstr) > 0){
-        ESP_ERROR_CHECK(JSON_init(&js, jstr));        
-        while(JSON_nextToken(&js, JSMN_OBJECT)){
-            REPO_InsertScheduleFromJson(&js, head);    
+        if(JSON_init(&js, jstr) == ESP_OK){
+            while(JSON_nextToken(&js, JSMN_OBJECT)){
+                REPO_InsertScheduleFromJson(&js, head);    
+            }
         }
         free(jstr);
     }

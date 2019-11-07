@@ -2,15 +2,14 @@
 #include <esp_log.h>
 #include <esp_system.h>
 #include "cfserver.h"
-#include "stepper.h"
 #include "repo.h"
-#include "json.h"
 #include "route.h"
 
 #define TMP_BUF_LEN 64
 
 static const char *TAG = "ROUTE";
 
+static esp_err_t get_data_helper(httpd_req_t *req, uint32_t (*action)(char*));
 esp_err_t home_get_handler(httpd_req_t *req);
 esp_err_t schedule_get_handler(httpd_req_t *req);
 esp_err_t feed_post_handler(httpd_req_t *req);
@@ -48,7 +47,7 @@ httpd_uri_t handlers [] = {
         .handler = schedule_delete_handler,
         .user_ctx = NULL
     },
-    NULL
+    {NULL, (httpd_method_t)0, NULL, NULL}
 };
 
 httpd_uri_t *ROUTE_GetUriList(void){
@@ -61,22 +60,21 @@ httpd_uri_t *ROUTE_GetUriList(void){
  * 
  */
 esp_err_t home_get_handler(httpd_req_t *req){
+    char *buf;
+    uint32_t size;
     
     ESP_LOGI(TAG, "GET for URI: %s", req->uri);
-
-    /* Send response with custom headers and body set as the
-     * string passed in user context*/
-    //const char* resp_str = "Home, testing testting";
-    //httpd_resp_send(req, resp_str, strlen(resp_str));
-
-    char *buf;
-    uint32_t size = REPO_GetHomePage(&buf);
+    
+    size = REPO_GetHomePage(&buf);
 
     if(size > 0){
         httpd_resp_send(req, buf, size);
         free(buf);
     }else{
-        httpd_resp_send(req, "Fail", 5);
+    	buf = (char*)"Error reading file";
+    	ESP_LOGE(TAG,"%s", buf);
+        httpd_resp_set_status(req, "500");
+        httpd_resp_send(req, buf, strlen(buf));
     }    
     return ESP_OK;
 }
@@ -87,53 +85,10 @@ esp_err_t home_get_handler(httpd_req_t *req){
  * 
  */
 esp_err_t feed_post_handler(httpd_req_t *req){
-Json js;
-char *buf, tmp[TMP_BUF_LEN];
-int ret = ESP_FAIL, len = req->content_len;
 
     ESP_LOGI(TAG, "POST for URI \"%s\"", req->uri);
 
-    buf = (char*)malloc(len + 1); // Extra string terminator
-    memset(buf, '\0', len + 1);
-    memset(tmp,'\0', TMP_BUF_LEN);
-
-    if(buf == NULL){
-        httpd_resp_set_status(req, "507");
-        ESP_LOGE(TAG, "Failed to allocate memory");
-        goto err0;
-    }    
-
-    if ((ret = httpd_req_recv(req, buf, len)) <= 0) {
-        httpd_resp_set_status(req, "500");
-        ESP_LOGE(TAG, "Failed receiving data %u", ret);
-        ret = ESP_FAIL;
-        goto err1;
-    }
-    
-    ret = JSON_init(&js, buf);
-
-    if( ret == ESP_OK){
-        if(JSON_string(&js, "qnt", (uint8_t*)tmp) > 0){    
-            int32_t qnt = atoi(tmp);
-            if(qnt > 0){
-                ESP_LOGI(TAG, "Dispensing %dg", qnt);
-                STEP_MoveSteps(qnt);
-                sprintf(tmp, "ok");
-            }else{
-                ret = ESP_FAIL;
-                sprintf(tmp, "Invalid quantity '%d'",qnt);
-                httpd_resp_set_status(req, "400");
-            }
-        }
-    }else{
-        esp_err_to_name(ret); 
-    }
-
-err1:
-    free(buf);
-err0:
-    httpd_resp_send(req, tmp, strlen(tmp));
-    return ret;
+    return get_data_helper(req, REPO_DispenseFood);
 }
 
 /**
@@ -164,70 +119,49 @@ char *buf;
 esp_err_t schedule_post_handler(httpd_req_t *req){
     ESP_LOGI(TAG, "POST for URI: %s", req->uri);
 
+    return get_data_helper(req, REPO_PostSchedule);
+}
+
+/**
+ * Handler for DELETE /scheduler
+ * */
+esp_err_t schedule_delete_handler(httpd_req_t *req){
+    ESP_LOGI(TAG, "DELETE for URI: %s", req->uri);
+    
+    return get_data_helper(req, REPO_DeleteSchedule);
+}
+
+/**
+ * Helper for handling memory allocation and error handling
+ *
+ * \param req		request data structure
+ * \param action	function to call with data
+ * \return esp_err_t
+ * */
+static esp_err_t get_data_helper(httpd_req_t *req, uint32_t (*action)(char*)){
     uint32_t len = req->content_len;
-    int ret = ESP_OK;
     const char *error_message = NULL;
-
     char *data = (char*)malloc(len);
-
+    int ret = ESP_OK;
+    
     if(data == NULL){
         httpd_resp_set_status(req, "507");
-        error_message =  "Failed to allocate memory";
+        error_message =  "Fail allocating memory";
         ret = ESP_ERR_NO_MEM;
         goto err0;
     } 
 
     if ((ret = httpd_req_recv(req, data, len)) <= 0) {
         httpd_resp_set_status(req, "500");
-        error_message = "Failed receiving data";
+        error_message = "Fail receiving data";
         goto err1;
     }
-
-    if(!REPO_PostSchedule(data, len)){
-        httpd_resp_set_status(req, "400");
-    }
-
-err1:
-    free(data);
-err0:
-
-    if(error_message == NULL){
-        httpd_resp_send(req, "ok", 2);
-        return ESP_OK;
-    }
-
-    ESP_LOGE(TAG, "%s", error_message);
-    httpd_resp_send(req, error_message, strlen(error_message));
-    return ret;
-}
-
-/**
- * Handler for POST /scheduler
- * */
-esp_err_t schedule_delete_handler(httpd_req_t *req){
-    ESP_LOGI(TAG, "DELETE for URI: %s", req->uri);
     
-    const char *error_message = NULL;
-    uint32_t len = req->content_len;
-    char *data = (char*)malloc(len);
-    int ret = ESP_OK;
+    data[len] = '\0';	// data received shlould always be a string
 
-    if(data == NULL){
-        httpd_resp_set_status(req, "507");
-        error_message =  "Failed to allocate memory";
-        ret = ESP_ERR_NO_MEM;
-        goto err0;
+	if(!action(data)){
+        httpd_resp_set_status(req, "400");   // bad request
     }
-
-    if ((ret = httpd_req_recv(req, data, len)) <= 0) {
-        httpd_resp_set_status(req, "500");
-        error_message = "Failed receiving data";
-        goto err1;
-    }
-
-    if(!REPO_DeleteSchedule(data, len)){
-        httpd_resp_set_status(req, "400");  // bad request
-    }    
 
 err1:
     free(data);
@@ -242,6 +176,12 @@ err0:
     httpd_resp_send(req, error_message, strlen(error_message));
     return ret;
 }
+
+
+
+
+
+
 #if 0
 /**
  * Handler for GET /ctrl
