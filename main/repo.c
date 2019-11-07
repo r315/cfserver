@@ -54,8 +54,8 @@ Json js;
 
     if(REPO_FreeSchedules()){
         if(JSON_init(&js, data) == ESP_OK){
-            ESP_LOGI(TAG,"%s\n",data);
-        	if(REPO_InsertScheduleFromJson(&js, &list) > 0)        		
+            //ESP_LOGI(TAG,"%s\n",data);
+        	if(REPO_InsertScheduleFromJson(&js, &list) >= 0)        		
         		return REPO_SaveSchedules(&list);
     }
     }
