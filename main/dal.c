@@ -58,30 +58,39 @@ char *jstr = (char*)malloc(SCHEDULE_T_CHARS);
  * */
 char *DAL_ListToJson(node_t *head){
 char *jstr = (char*)malloc(REPO_MAX_SCHEDULES * SCHEDULE_T_CHARS);
-char *ret = jstr;
+char *aux;
 
 	if(jstr == NULL){
 		ESP_LOGE(TAG, "Fail to allocate memory for stringify list");
 		return NULL;
 	}
 	
-	*jstr = '[';
+	if(head->next == NULL){
+		strcpy(jstr, "[]");
+		return jstr;
+	}
+	
+	aux = jstr;
+	*jstr++ = '[';
 
-	for(uint32_t i = 0; head->next != NULL; i++, *jstr = ','){	
+	while(1){
 		head = head->next;
 		char *jsch = DAL_ScheduleToJson((schedule_t*)head->value);
 		if(jsch != NULL){
 			//printf("%s\n", jsch);
 			uint32_t jsize = strlen(jsch);
-			jstr++;
 			memcpy(jstr, jsch, jsize);
-			jstr += jsize;
 			free(jsch);
+			jstr += jsize;
+			if(head->next == NULL){			
+				break;
+			}
+			*jstr++ = ',';
 		}
 	}
-	
+
 	*jstr++ = ']';
 	*jstr = '\0';
-    return ret;
+    return aux;
 }
 
