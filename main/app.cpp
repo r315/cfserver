@@ -26,12 +26,36 @@
 #include "route.h"
 #include "sntp.h"
 #include "dal.h"
+#include "mdns.h"
 
 static const char *TAG="App";
+static const char *MDNS_HOSTNAME = "sissi";
 static Cfserver server;
+
+static void initialise_mdns(void)
+{
+    ESP_LOGI(TAG, "Initialising mDNS");
+    //initialize mDNS
+    ESP_ERROR_CHECK( mdns_init() );
+    //set mDNS hostname (required if you want to advertise services)
+    ESP_ERROR_CHECK( mdns_hostname_set(MDNS_HOSTNAME) );
+    //set default mDNS instance name
+    ESP_ERROR_CHECK( mdns_instance_name_set("sissi cat feeder") );
+/*
+     mdns_txt_item_t serviceTxtData[3] = {
+        {"board","esp32"},
+        {"u","user"},
+        {"p","password"}
+    };
+
+    ESP_ERROR_CHECK( mdns_service_add("catfeed", "_http", "_tcp", 80, serviceTxtData, 3) );
+*/
+}
+
 
 void onWifiConnected(void){
     SNTP_Init();
+    initialise_mdns();
 }
 
 void onWifiDisconnect(void){
