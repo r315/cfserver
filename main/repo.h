@@ -41,6 +41,8 @@ esp_err_t REPO_SaveWifiConfig(void);
 
 schedule_t *REPO_FirstSchedule(void);
 
+char *REPO_JsonSchedules(void);
+
 #ifdef __cplusplus
 }
 #endif

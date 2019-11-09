@@ -24,6 +24,7 @@
 #include "cmd_system.h"
 #include "sdkconfig.h"
 #include "sntp.h"
+#include "repo.h"
 
 static const char *TAG = "cmd_system";
 
@@ -154,6 +155,25 @@ static void register_time()
 }
 
 
+/* Schedules  */
+static int system_schedules(int argc, char **argv){
+char *jstr = REPO_JsonSchedules();
+    printf("\n%s\n", jstr);
+    free(jstr);
+    return ESP_OK;
+}
+
+static void register_schedules(){
+    const esp_console_cmd_t cmd = {
+        .command = "schedules",
+        .help = "Prints feed schedules",
+        .hint = NULL,
+        .func = &system_schedules,
+    };
+    ESP_ERROR_CHECK( esp_console_cmd_register(&cmd) );    
+}
+
+
 void register_system()
 {
     register_free();
@@ -162,4 +182,5 @@ void register_system()
     register_restart();
     register_time();
     register_wifi();
+    register_schedules();
 }

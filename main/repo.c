@@ -104,6 +104,14 @@ node_t *node = list.next;
     return (schedule_t*)(node->value);
 }
 
+/**
+ * Return all schedules in jason string format
+ * 
+ * \return jason string or null on error
+ * */
+char *REPO_JsonSchedules(void){
+    return DAL_ListToJson(&list);
+}
 
 /**
  * https://docs.espressif.com/projects/esp8266-rtos-sdk/en/latest/api-guides/partition-tables.html
