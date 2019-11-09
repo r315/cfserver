@@ -142,12 +142,32 @@
         function insertSchedule(sch) {
             let tab = document.getElementById("tbl-schedules")
             let count = tab.childElementCount + 1
-            let row = tab.insertRow(-1)            
+            let row = tab.insertRow(-1)
             insertTextCell(row, count, "#")
             insertTextCell(row, `${sch.dateTime.getHours()}:${sch.dateTime.getMinutes()}`)
             insertTextCell(row, `${sch.repeat}`)
             insertTextCell(row, sch.qnt)
             insertCheckCell(row, sch.active)
+        }
+
+        function newDayTime(time){
+            let now = new Date();
+            let ticks = Math.floor(now.getTime() / 1000)    // remove miliseconds
+            ticks = ticks % (24 * 3600)                     // get only ticks for the time
+            return new Date(now.getTime() - (ticks*1000) + time)  // return date with new time
+        }
+
+        function timeStingToTicks(time){
+            let t = time.split(':')
+            let hour = parseInt(t[0])
+            if(hour > 23 || isNaN(hour))
+                return NaN
+
+            let minutes = parseInt(t[1])
+            if(minutes > 59 || isNaN(minutes))
+                return NaN
+
+            return (hour*3600) + (minutes*60) // return in seconds
         }
 
         function scheduleFood() {
@@ -156,10 +176,13 @@
             }
             sch.repeat = document.getElementById("sch-repeat").value
             sch.qnt = document.getElementById("sch-qnt").value
-            let t = document.getElementById("sch-time").value.split(':')
-            sch.dateTime = new Date()
-            //sch.dateTime.setHours(t[0], t[1])
-            sch.time = sch.dateTime.getTime()
+            let timeInSeconds = timeStingToTicks(document.getElementById("sch-time").value)
+            if(isNaN(timeInSeconds)){
+                alert("Invalid time")
+                return
+            }
+            sch.dateTime = newDayTime(timeInSeconds * 1000)
+            sch.time = sch.dateTime.getTime() / 1000
             schedules.push(sch)
             postSchedule(sch);
         }
@@ -194,7 +217,7 @@
                 tab.innerHTML = ""
                 schedules = sch
                 schedules.forEach(element => {
-                    element.dateTime = new Date(element.time) //toDateTime(element.time)
+                    element.dateTime = new Date(element.time * 1000) // add miliseconds
                         insertSchedule(element)
                 })
             }else{
