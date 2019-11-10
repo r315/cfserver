@@ -2,6 +2,7 @@
 #define _dal_h_
 
 #include "json.h"
+#include "time.h"
 
 #define SCHEDULE_T_CHARS    64
 #define CONFIG_T_CHARS      256
@@ -14,7 +15,7 @@ typedef struct _config_t{
 typedef struct _schedule_t{
     uint16_t qnt;              //5 chars
     uint8_t repeat;            //3 chars
-    uint64_t time;             //20 chars
+    time_t time;             //20 chars
 }schedule_t;
 
 

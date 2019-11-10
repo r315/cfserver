@@ -26,7 +26,7 @@ uint8_t tmp[10];
     }
 
     if(JSON_string(js, "time", tmp) > 0){
-        sch->time = atoll((const char *)tmp);                    
+        sch->time = atol((const char *)tmp);                    
     }                
     return sch;
 }
@@ -41,7 +41,7 @@ char *jstr = (char*)malloc(SCHEDULE_T_CHARS);
         return NULL;
 	}
 	
-	sprintf(jstr, "{\"qnt\":%d,\"repeat\":%d,\"time\":%llu}", 
+	sprintf(jstr, "{\"qnt\":%d,\"repeat\":%d,\"time\":%lu}", 
 		sch->qnt,
 		sch->repeat,
 		sch->time);

@@ -52,7 +52,7 @@ char strftime_buf[64];
         ESP_LOGE(TAG, "The current date/time error");
     } else {
         strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-        ESP_LOGI(TAG, "The current date/time in Portugal is: %s", strftime_buf);
+        ESP_LOGI(TAG, "The current date/time in Portugal is: %s\nTicks: %ld", strftime_buf, now);
     }
 }
 
