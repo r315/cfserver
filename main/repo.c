@@ -30,8 +30,25 @@ uint32_t REPO_FreeSchedules(void){
 /**
  * Public API
  * */
-uint32_t REPO_ReadConfig(char **buf){
-    return REPO_ReadFile((char*)CFG_PATH, buf);    
+config_t *REPO_ReadConfig(void){
+char *data;
+config_t *cfg;
+
+    if(REPO_ReadFile((char*)CFG_PATH, &data) > 0){
+        cfg = DAL_JsonToConfig(data);
+        free(data);
+        return cfg;
+    }
+    return NULL;
+}
+
+uint32_t REPO_SaveConfig(config_t *cfg){
+char *jstr = DAL_ConfigToJson(cfg);
+    if(jstr != NULL){
+        //printf("\n%s\n",jstr);
+        return REPO_WriteFile((char*)CFG_PATH, jstr, strlen(jstr));
+    }
+    return 0;
 }
 
 uint32_t REPO_GetHomePage(char **buf){

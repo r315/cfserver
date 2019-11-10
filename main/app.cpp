@@ -63,20 +63,14 @@ void onWifiDisconnect(void){
 }
 
 extern "C" void server_init(void){    
-char *ptr;
-uint8_t tmp[64];
-Json js;
+config_t *cfg;
 
-    if(REPO_ReadConfig(&ptr) > 0){
-        ESP_ERROR_CHECK(JSON_init(&js, ptr));
-        if(JSON_string(&js, "ssid", tmp) > 0){
-            server.set_ssid(tmp);
-        }
+    cfg = REPO_ReadConfig();
 
-        if(JSON_string(&js, "password", tmp) > 0){
-            server.set_pass(tmp);
-        }
-        free(ptr);
+    if(cfg != NULL){        
+        server.set_ssid(cfg->ssid);
+        server.set_pass(cfg->password);
+        free(cfg);
     }
 
     server.tag = "CFSERVER";

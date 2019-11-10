@@ -20,7 +20,8 @@ extern "C" {
 
 uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len);
 uint32_t REPO_ReadFile(char *filename, char **buf);
-uint32_t REPO_ReadConfig(char **buf);
+config_t *REPO_ReadConfig(void);
+uint32_t REPO_SaveConfig(config_t *cfg);
 uint32_t REPO_GetHomePage(char **buf);
 uint32_t REPO_GetSchedules(char **buf);
 uint32_t REPO_PostSchedule(char *data);
