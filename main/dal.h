@@ -21,5 +21,7 @@ typedef struct _schedule_t{
 schedule_t *DAL_JsonToSchedule(Json *js);
 char *DAL_ScheduleToJson(schedule_t *sch);
 char *DAL_ListToJson(node_t *head, uint32_t maxitems);
+config_t *DAL_JsonToConfig(char *jstr);
+char *DAL_ConfigToJson(config_t *cfg);
 
 #endif

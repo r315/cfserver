@@ -94,3 +94,47 @@ char *aux;
     return aux;
 }
 
+/**
+ * Convert Json string to configuration structure
+ * 
+ * \param jstr	pointer to json string
+ * \return pointer to config_t structure, NULL on error
+ * */
+config_t *DAL_JsonToConfig(char *jstr){
+config_t *cfg = (config_t*)malloc(sizeof(config_t));
+Json js;
+
+	if(jstr == NULL){
+		ESP_LOGE(TAG, "Fail to allocate memory for config structure");
+		return NULL;
+	}
+
+	if(JSON_init(&js, jstr) == ESP_OK){
+        if(JSON_string(&js, "ssid", cfg->ssid) == 0){
+            ESP_LOGE(TAG,"Unable to read wificfg ssid");
+        }
+
+        if(JSON_string(&js, "password", cfg->password) == 0){
+            ESP_LOGE(TAG,"Unable to read wificfg password");
+        }
+	}
+	return cfg;
+}
+
+/**
+ * 
+ * */
+char *DAL_ConfigToJson(config_t *cfg){
+	char *jstr = (char*)malloc(CONFIG_T_CHARS);
+
+	if(jstr == NULL){
+		ESP_LOGE(TAG, "Fail to allocate memory for stringify configuration");
+        return NULL;
+	}
+	
+	sprintf(jstr, "{\"ssid\":\"%s\",\"password\":\"%s\"}", 
+		cfg->ssid,
+		cfg->password);
+	
+	return jstr;
+}
