@@ -118,17 +118,66 @@ static void register_heap()
 }
 
 /* 'wifi' command manages wifi connection */
-static int system_wifi(int argc, char **argv)
-{
-    
-    return 0;
+
+typedef struct _opt{
+    const char *opt;
+    char *optv;
+}opt_t;
+
+static void checkOptions(int argc, char **argv, int optc, opt_t *options){
+    while(argc--){
+        for(uint32_t i = 0; i < optc; i++){
+            if(memcmp(argv[argc], options[i].opt, strlen(argv[argc])) == 0){
+                options[i].optv = argv[argc + 1];
+            }
+        }
+    }
+}
+
+static int system_wifi(int argc, char **argv){
+config_t *cfg;
+opt_t options[] = {
+{"-p",NULL},
+{"-s", NULL}
+};
+
+    cfg = REPO_ReadConfig();
+
+    if (argc == 1)
+    {
+        if (cfg != NULL)
+        {
+            printf("SSID: %s\nPASS: %s\n", cfg->ssid, cfg->password);
+            goto end1;            
+        }
+    }
+
+    checkOptions(argc, argv, sizeof(options)/sizeof(opt_t), options);
+
+    if(options[0].optv != NULL){
+        strcpy((char*)cfg->password, options[0].optv);
+    }
+
+    if(options[1].optv != NULL){
+        strcpy((char*)cfg->ssid, options[1].optv);
+    }
+
+    if(REPO_SaveConfig(cfg) == 0){
+        ESP_LOGE(TAG,"Fail to save to config file");
+    }
+
+end1:
+    free(cfg);
+    return ESP_OK;
 }
 
 static void register_wifi()
 {
     const esp_console_cmd_t cmd = {
         .command = "wifi",
-        .help = "Get current SSID, set new SSID and Password",
+        .help = "Get/Set wifi configuration, no options prints current configuration\n"
+                "-p <password>\n"
+                "-s <ssid>",
         .hint = NULL,
         .func = &system_wifi,
     };
