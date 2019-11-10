@@ -30,6 +30,13 @@ static void jcpy(uint8_t *dst, uint8_t *src, uint32_t len){
     *(dst) = '\0';
 }
 
+/**
+ * Creates a json structure from a json string
+ * 
+ * \param js    destinations json structure
+ * \param jstr  input json string
+ * \return ESP_OK on successs, ESP_ERR_NOT_FOUND if fail to parse
+ * */
 esp_err_t JSON_init(Json *js, char *jstr){
     
     jsmn_init(&js->jp);
@@ -58,6 +65,12 @@ esp_err_t JSON_init(Json *js, char *jstr){
 }
 
 /**
+ * Check if a json object has a given propertie and reads the value
+ * 
+ * \param js    json object
+ * \param name  propertie name
+ * \param dst   destination buffer for value
+ * \return size os the propertie value
  * */
 uint32_t JSON_string(Json *js, const char *name, uint8_t *dst){
     uint32_t size = 0;
@@ -76,6 +89,10 @@ uint32_t JSON_string(Json *js, const char *name, uint8_t *dst){
 /**
  * Move to next parsed token, the next strings will be parsed 
  * from this point on
+ * 
+ * \param js jason object
+ * \param token token type
+ * \return start index of the given token
  * */
 uint32_t JSON_nextToken(Json *js, jsmntype_t tok){
 	for(int i = js->curjelement + 1; i < js->jelements; i++){
