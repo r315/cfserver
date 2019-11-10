@@ -3,7 +3,7 @@
 #include <string.h>
 #include <esp_log.h>
 #include "list.h"
-#include "dal.h"
+#include "repo.h"
 
 static const char *TAG = "DAL";
 
@@ -56,8 +56,8 @@ char *jstr = (char*)malloc(SCHEDULE_T_CHARS);
  * \param head  list head
  * \return pointer to JSON string, pointer should be free after use 
  * */
-char *DAL_ListToJson(node_t *head){
-char *jstr = (char*)malloc(REPO_MAX_SCHEDULES * SCHEDULE_T_CHARS);
+char *DAL_ListToJson(node_t *head, uint32_t maxitems){
+char *jstr = (char*)malloc(maxitems * SCHEDULE_T_CHARS);
 char *aux;
 
 	if(jstr == NULL){

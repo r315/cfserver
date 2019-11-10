@@ -9,6 +9,7 @@ extern "C" {
 #include <esp_system.h>
 #include "list.h"
 #include "json.h"
+#include "dal.h"
 
 #define REPO_MAX_SCHEDULES  5
 
@@ -16,15 +17,6 @@ extern "C" {
 #define HOME_PAGE_PATH  REPO_ROOT"/index.html"
 #define CFG_PATH        REPO_ROOT"/wificfg.json"
 #define SCHEDULE_PATH   REPO_ROOT"/schedule.json"
-
-#define SCHEDULE_T_CHARS    64
-
-typedef struct _schedule_t{
-    uint16_t qnt;              //5 chars
-    uint8_t repeat;            //3 chars
-    uint64_t time;             //20 chars
-}schedule_t;
-
 
 uint32_t REPO_WriteFile(char *filename, char *buf, uint32_t len);
 uint32_t REPO_ReadFile(char *filename, char **buf);

@@ -39,7 +39,7 @@ uint32_t REPO_GetHomePage(char **buf){
 }
 
 uint32_t REPO_GetSchedules(char **buf){
-	char *jstr = DAL_ListToJson(&list);
+	char *jstr = DAL_ListToJson(&list, REPO_MAX_SCHEDULES);
 	if(jstr != NULL){
 		*buf = jstr;
 		return strlen(jstr);
@@ -110,7 +110,7 @@ node_t *node = list.next;
  * \return jason string or null on error
  * */
 char *REPO_JsonSchedules(void){
-    return DAL_ListToJson(&list);
+    return DAL_ListToJson(&list, REPO_MAX_SCHEDULES);
 }
 
 /**
@@ -307,7 +307,7 @@ int32_t inserted = -1;
  * \return number of bytes written to file, 0 if fail
  */
 static uint32_t REPO_SaveSchedules(node_t *head){
-char *jstr = DAL_ListToJson(head);
+char *jstr = DAL_ListToJson(head, REPO_MAX_SCHEDULES);
 uint32_t count = 0;
 	if(jstr != NULL){		
 		count = strlen(jstr);
