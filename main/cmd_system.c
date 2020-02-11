@@ -28,6 +28,21 @@
 
 static const char *TAG = "cmd_system";
 
+typedef struct _opt{
+    const char *opt;
+    char *optv;
+}opt_t;
+
+static void parseOptions(int argc, char **argv, int optc, opt_t *options){
+    while(argc--){
+        for(uint32_t i = 0; i < optc; i++){
+            if(memcmp(argv[argc], options[i].opt, strlen(argv[argc])) == 0){
+                options[i].optv = argv[argc + 1];
+            }
+        }
+    }
+}
+
 
 /* 'version' command */
 static int get_version(int argc, char **argv)
@@ -79,7 +94,6 @@ static void register_restart()
 }
 
 /** 'free' command prints available heap memory */
-
 static int free_mem(int argc, char **argv)
 {
     printf("%d\n", esp_get_free_heap_size());
@@ -118,22 +132,6 @@ static void register_heap()
 }
 
 /* 'wifi' command manages wifi connection */
-
-typedef struct _opt{
-    const char *opt;
-    char *optv;
-}opt_t;
-
-static void checkOptions(int argc, char **argv, int optc, opt_t *options){
-    while(argc--){
-        for(uint32_t i = 0; i < optc; i++){
-            if(memcmp(argv[argc], options[i].opt, strlen(argv[argc])) == 0){
-                options[i].optv = argv[argc + 1];
-            }
-        }
-    }
-}
-
 static int system_wifi(int argc, char **argv){
 config_t *cfg;
 opt_t options[] = {
@@ -152,7 +150,7 @@ opt_t options[] = {
         }
     }
 
-    checkOptions(argc, argv, sizeof(options)/sizeof(opt_t), options);
+    parseOptions(argc, argv, sizeof(options)/sizeof(opt_t), options);
 
     if(options[0].optv != NULL){
         strcpy((char*)cfg->password, options[0].optv);
