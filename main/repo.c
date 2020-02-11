@@ -122,9 +122,9 @@ node_t *node = list.next;
 }
 
 /**
- * Return all schedules in jason string format
+ * Return all schedules in json string format
  * 
- * \return jason string or null on error
+ * \return json string or null on error
  * */
 char *REPO_JsonSchedules(void){
     return DAL_ListToJson(&list, REPO_MAX_SCHEDULES);

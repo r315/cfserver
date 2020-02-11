@@ -223,7 +223,7 @@ static void register_schedules(){
 }
 
 
-void register_system()
+void register_commands()
 {
     register_free();
     register_heap();

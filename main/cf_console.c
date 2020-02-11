@@ -114,8 +114,7 @@ void initialize_console(void)
     
     ESP_LOGI(TAG, "Registering console commands");
     esp_console_register_help_command();
-    register_system();
-    register_stepper();
+    register_commands();
 
     xTaskCreate(consoleProcess, "Console task", 2048, NULL, 10, NULL);
 }

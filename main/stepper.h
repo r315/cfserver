@@ -25,7 +25,7 @@ extern "C" {
 #define STEP_ENABLED    1
 
 #define STEP_DEFAULT_PULSE  7000
-#define STEP_MIN_PULSE      1000
+#define STEP_MIN_PULSE      100
 
 
 typedef struct _StpMove{
