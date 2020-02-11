@@ -25,6 +25,7 @@
 #include "sdkconfig.h"
 #include "sntp.h"
 #include "repo.h"
+#include "stepper.h"
 
 static const char *TAG = "cmd_system";
 
@@ -220,6 +221,49 @@ static void register_schedules(){
     ESP_ERROR_CHECK( esp_console_cmd_register(&cmd) );    
 }
 
+/**
+ * Stepper console command
+ * */
+static int move_steps(int argc, char **argv){
+uint32_t steps, time;
+opt_t options[] = {
+    {"-n",NULL},
+    {"-t", NULL}
+};
+
+    parseOptions(argc, argv, sizeof(options)/sizeof(opt_t), options);
+
+    if(options[0].optv == NULL || options[1].optv == NULL){
+        ESP_LOGW(TAG,"missing parameters");
+        return 0;
+    }
+    
+    steps = atoi(options[0].optv);
+    time = atoi(options[1].optv);
+
+    if(time < STEP_MIN_PULSE)
+    {
+        ESP_LOGI(TAG,"Invalid pulse time\n");    
+        return 0;
+    }    
+
+    ESP_LOGI(TAG,"moving %u steps\n", steps);
+    STEP_Move(steps, time, STEP_CW);
+
+    return 0;
+}
+
+void register_stepper(void){    
+    const esp_console_cmd_t step_move = {
+        .command = "step",
+        .help = "Move stepper motor\n"
+                "-n <number of pulses>\n"
+                "-t <time between pulses in us (>1000)>\n",
+        .hint = NULL,
+        .func = &move_steps,
+    };
+    ESP_ERROR_CHECK( esp_console_cmd_register(&step_move) );
+}
 
 void register_commands()
 {
@@ -230,4 +274,5 @@ void register_commands()
     register_time();
     register_wifi();
     register_schedules();
+    register_stepper();
 }
