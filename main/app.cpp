@@ -29,8 +29,10 @@
 #include "mdns.h"
 
 static const char *TAG="App";
-static const char *MDNS_HOSTNAME = "sissi";
+static const char *MDNS_HOSTNAME = "sissi"; // alias sissi.local
 static Cfserver server;
+
+enum {APP_STARTING, APP_DISPENSING, APP_DISPENSING_DONE, APP_IDLE, APP_END};
 
 static void initialise_mdns(void)
 {
@@ -80,36 +82,41 @@ config_t *cfg;
     server.onDisconnect = onWifiDisconnect;
 }
 
-#if 0
-static void schToString(char *dst, schedule_t *sch){
-    memcpy(dst, "{}", 2);     
-}
-
-static void saveSchedulers(node_t *head){
-    uint32_t count = countNodes(head);
-    char *jstr = (char*)malloc((SCHEDULE_T_CHARS + 2) * count);
-    *(jstr++) = '[';
-    for(uint32_t i = 0; i < count; i++){
-        schedule_t *sch = (schedule_t*)(head->next->value);
-        schToString(jstr, sch);
-        jstr +=SCHEDULE_T_CHARS + 2; // plus brackets
-    }
-}
-#endif
-
-
 extern "C" void app(void){
 time_t now;
 schedule_t *sch;
+uint8_t app_state = APP_STARTING;
 
     ESP_LOGI(TAG, "Running Application");
 
     while(1){
-        now = SNTP_GetTime();
-        sch = REPO_FirstSchedule();
-        if(sch->time == now){            
-                printf("feeding\n");
-        }        
+
+        switch(app_state){
+        	case APP_STARTING:
+        		app_state = APP_IDLE;
+        		
+            case APP_IDLE:
+                now = SNTP_GetTime() / 60; // ignore seconds
+                sch = REPO_FirstSchedule();
+                if(sch != NULL){
+                    if(now == sch->time/60){
+                        app_state = APP_DISPENSING;
+                    }
+                }
+                break;
+
+            case APP_DISPENSING:
+                printf("\nfeeding\n");
+                app_state = APP_DISPENSING_DONE;
+                break;
+
+            case APP_DISPENSING_DONE:
+                app_state = APP_IDLE;
+
+            default:
+                break;
+
+        } 
         vTaskDelay(1000);
     }
 }
