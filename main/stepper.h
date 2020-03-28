@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 
-#define QUEUE_SIZE 5
+#define QUEUE_SIZE      5
 #define STEP_CLK_PIN    14
 #define STEP_DIR_PIN    12
 #define STEP_EN_PIN     13

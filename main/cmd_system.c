@@ -26,6 +26,7 @@
 #include "sntp.h"
 #include "repo.h"
 #include "stepper.h"
+#include "power.h"
 
 static const char *TAG = "cmd_system";
 
@@ -265,6 +266,37 @@ void register_stepper(void){
     ESP_ERROR_CHECK( esp_console_cmd_register(&step_move) );
 }
 
+/* dc-dc converter  */
+static int cmd_dcdc(int argc, char **argv){
+opt_t options[] = {
+    {"-e",NULL}
+};
+
+    parseOptions(argc, argv, sizeof(options)/sizeof(opt_t), options);
+
+    if(options[0].optv == NULL){
+        ESP_LOGI(TAG,"DC-DC State: %s \n", PWR_DCDC_State() == PWR_DCDC_ON ? "ON": "OFF");
+        return 0;
+    }
+
+    uint8_t en = atoi(options[0].optv);
+
+    PWR_DCDC_EN(en);
+    return ESP_OK;
+}
+
+static void register_dcdc(){
+    const esp_console_cmd_t cmd = {
+        .command = "dcdc",
+        .help = "dc-dc converter control\n"
+                "-e <0/1>\n",
+        .hint = NULL,
+        .func = &cmd_dcdc,
+    };
+    ESP_ERROR_CHECK( esp_console_cmd_register(&cmd) );    
+}
+
+
 void register_commands()
 {
     register_free();
@@ -275,4 +307,5 @@ void register_commands()
     register_wifi();
     register_schedules();
     register_stepper();
+    register_dcdc();
 }
